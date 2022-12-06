@@ -1,0 +1,35 @@
+{
+    "name": "whitedigital-eu/audit-service",
+    "description": "Audit Service",
+    "type": "symfony-bundle",
+    "keywords": [
+        "api-platform",
+        "audit",
+        "php",
+        "symfony"
+    ],
+    "license": "MIT",
+    "require": {
+        "php": ">=8.1.0"
+    },
+    "require-dev": {
+        "friendsofphp/php-cs-fixer": "*",
+        "whitedigital-eu/config-pack": "*",
+        "roave/security-advisories": "dev-latest"
+    },
+    "autoload": {
+        "psr-4": {
+            "WhiteDigital\\Audit\\": "src/"
+        }
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "config": {
+        "sort-packages": true
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-main": "0.x-dev"
+        }
+    }
+}
