@@ -29,10 +29,10 @@ class AuditBundle extends AbstractBundle
     public function loadExtension(array $config, ContainerConfigurator $container, ContainerBuilder $builder): void
     {
         if (true === $config['enabled']) {
-            $builder->setParameter('wd.audit.enabled', $config['enabled']);
-            $builder->setParameter('wd.audit.entity_manager', $config['entity_manager']);
-            $builder->setParameter('wd.audit.excluded_response_codes', array_merge($config['excluded_response_codes'] ?? [], [Response::HTTP_NOT_FOUND]));
-            $builder->setParameter('wd.audit.audit_types', array_merge($config['additional_audit_types'] ?? [], self::AUDIT_TYPES));
+            $builder->setParameter('whitedigital.audit.enabled', $config['enabled']);
+            $builder->setParameter('whitedigital.audit.entity_manager', $config['entity_manager']);
+            $builder->setParameter('whitedigital.audit.excluded_response_codes', array_merge($config['excluded_response_codes'] ?? [], [Response::HTTP_NOT_FOUND]));
+            $builder->setParameter('whitedigital.audit.audit_types', array_merge($config['additional_audit_types'] ?? [], self::AUDIT_TYPES));
 
             $container->import('../config/services.php');
         }
@@ -40,26 +40,11 @@ class AuditBundle extends AbstractBundle
 
     public function prependExtension(ContainerConfigurator $container, ContainerBuilder $builder): void
     {
-        if (true === $builder->getExtensionConfig('audit')[0]['enabled']) {
-            $container->extension('doctrine', [
-                'orm' => [
-                    'entity_managers' => [
-                        $builder->getExtensionConfig('audit')[0]['entity_manager'] => [
-                            'naming_strategy' => 'doctrine.orm.naming_strategy.underscore_number_aware',
-                            'mappings' => [
-                                'Audit' => [
-                                    'type' => 'attribute',
-                                    'dir' => __DIR__ . '/Entity',
-                                    'alias' => 'Audit',
-                                    'prefix' => 'WhiteDigital\Audit\Entity',
-                                    'is_bundle' => false,
-                                    'mapping' => true,
-                                ],
-                            ],
-                        ],
-                    ],
-                ],
-            ]);
+        if (true === ($builder->getExtensionConfig('audit')[0]['enabled'] ?? false)) {
+            $this->addDoctrineConfig($container, $builder->getExtensionConfig('audit')[0]['entity_manager']);
+            if (null !== ($builder->getExtensionConfig('audit')[0]['default_entity_manager'] ?? null)) {
+                $this->addDoctrineConfig($container, $builder->getExtensionConfig('audit')[0]['default_entity_manager']);
+            }
         }
     }
 
@@ -67,8 +52,10 @@ class AuditBundle extends AbstractBundle
     {
         $definition->rootNode()
             ->canBeEnabled()
+            ->addDefaultsIfNotSet()
             ->children()
                 ->scalarNode('entity_manager')->defaultValue('default')->end()
+                ->scalarNode('default_entity_manager')->defaultValue(null)->end()
                 ->arrayNode('excluded_response_codes')
                     ->scalarPrototype()->end()
                 ->end()
@@ -76,5 +63,28 @@ class AuditBundle extends AbstractBundle
                     ->scalarPrototype()->end()
                 ->end()
             ->end();
+    }
+
+    private function addDoctrineConfig(ContainerConfigurator $container, string $entityManager): void
+    {
+        $container->extension('doctrine', [
+            'orm' => [
+                'entity_managers' => [
+                    $entityManager => [
+                        'naming_strategy' => 'doctrine.orm.naming_strategy.underscore_number_aware',
+                        'mappings' => [
+                            'Audit' => [
+                                'type' => 'attribute',
+                                'dir' => __DIR__ . '/Entity',
+                                'alias' => 'Audit',
+                                'prefix' => 'WhiteDigital\Audit\Entity',
+                                'is_bundle' => false,
+                                'mapping' => true,
+                            ],
+                        ],
+                    ],
+                ],
+            ],
+        ]);
     }
 }

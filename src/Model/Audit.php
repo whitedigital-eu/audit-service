@@ -1,24 +1,12 @@
 <?php declare(strict_types = 1);
 
-namespace WhiteDigital\Audit\Entity;
+namespace WhiteDigital\Audit\Model;
 
 use Doctrine\ORM\Mapping as ORM;
-use WhiteDigital\Audit\Repository\AuditRepository;
-use WhiteDigital\EntityResourceMapper\Entity\BaseEntity;
-use WhiteDigital\EntityResourceMapper\Entity\Traits\Id;
 
-#[ORM\Entity(repositoryClass: AuditRepository::class)]
 #[ORM\MappedSuperclass]
-#[ORM\Index(fields: ['category'])]
-#[ORM\Index(fields: ['message'])]
-#[ORM\Index(fields: ['ipAddress'])]
-#[ORM\Index(fields: ['userIdentifier'])]
-#[ORM\Index(fields: ['createdAt'])]
-#[ORM\Index(fields: ['updatedAt'])]
-class Audit extends BaseEntity
+class Audit
 {
-    use Id;
-
     #[ORM\Column(nullable: true)]
     protected ?array $data = null;
 

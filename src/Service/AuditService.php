@@ -34,9 +34,9 @@ class AuditService implements AuditServiceInterface
         ManagerRegistry $registry,
         private readonly ParameterBagInterface $bag,
     ) {
-        $this->entityManager = $registry->getManager($this->bag->get('wd.audit.entity_manager'));
-        $this->excludedCodes = array_merge($this->bag->get('wd.audit.excluded_response_codes'), [Response::HTTP_NOT_FOUND]);
-        $this->auditTypes = $this->bag->get('wd.audit.audit_types');
+        $this->entityManager = $registry->getManager($this->bag->get('whitedigital.audit.entity_manager'));
+        $this->excludedCodes = array_merge($this->bag->get('whitedigital.audit.excluded_response_codes'), [Response::HTTP_NOT_FOUND]);
+        $this->auditTypes = $this->bag->get('whitedigital.audit.audit_types');
     }
 
     public function auditException(Throwable $exception, ?string $url = null): void

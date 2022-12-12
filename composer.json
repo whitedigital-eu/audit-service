@@ -6,11 +6,23 @@
         "api-platform",
         "audit",
         "php",
-        "symfony"
+        "symfony",
+        "symfony-bundle"
     ],
     "license": "MIT",
     "require": {
-        "php": ">=8.1.0"
+        "php": ">=8.1.0",
+        "doctrine/doctrine-bundle": "*",
+        "doctrine/orm": "*",
+        "doctrine/persistence": "*",
+        "symfony/config": ">=6.1",
+        "symfony/dependency-injection": ">=6.1",
+        "symfony/event-dispatcher": ">=6.1",
+        "symfony/http-foundation": ">=6.1",
+        "symfony/http-kernel": ">=6.1",
+        "symfony/security-bundle": ">=6.1",
+        "symfony/translation-contracts": "*",
+        "whitedigital-eu/entity-resource-mapper-bundle": "*"
     },
     "require-dev": {
         "friendsofphp/php-cs-fixer": "*",
