@@ -3,9 +3,9 @@
 namespace WhiteDigital\Audit\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
+use WhiteDigital\Audit\Contracts\AuditEntityInterface;
 use WhiteDigital\Audit\Repository\AuditRepository;
 use WhiteDigital\EntityResourceMapper\Entity\BaseEntity;
-use WhiteDigital\EntityResourceMapper\Entity\Traits\Id;
 
 #[ORM\Entity(repositoryClass: AuditRepository::class)]
 #[ORM\MappedSuperclass]
@@ -15,9 +15,12 @@ use WhiteDigital\EntityResourceMapper\Entity\Traits\Id;
 #[ORM\Index(fields: ['userIdentifier'])]
 #[ORM\Index(fields: ['createdAt'])]
 #[ORM\Index(fields: ['updatedAt'])]
-class Audit extends BaseEntity
+class Audit extends BaseEntity implements AuditEntityInterface
 {
-    use Id;
+    #[ORM\Id]
+    #[ORM\GeneratedValue(strategy: 'IDENTITY')]
+    #[ORM\Column(unique: true)]
+    protected ?int $id = null;
 
     #[ORM\Column(nullable: true)]
     protected ?array $data = null;
@@ -33,6 +36,11 @@ class Audit extends BaseEntity
 
     #[ORM\Column(type: 'text')]
     protected ?string $message = null;
+
+    public function getId(): ?int
+    {
+        return $this->id;
+    }
 
     public function getData(): ?array
     {
