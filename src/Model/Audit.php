@@ -3,9 +3,10 @@
 namespace WhiteDigital\Audit\Model;
 
 use Doctrine\ORM\Mapping as ORM;
+use WhiteDigital\Audit\Contracts\AuditEntityInterface;
 
 #[ORM\MappedSuperclass]
-class Audit
+class Audit implements AuditEntityInterface
 {
     #[ORM\Column(nullable: true)]
     protected ?array $data = null;

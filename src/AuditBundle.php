@@ -31,7 +31,7 @@ class AuditBundle extends AbstractBundle
         if (true === $config['enabled']) {
             $builder->setParameter('whitedigital.audit.enabled', $config['enabled']);
             $builder->setParameter('whitedigital.audit.entity_manager', $config['entity_manager']);
-            $builder->setParameter('whitedigital.audit.excluded_response_codes', array_merge($config['excluded_response_codes'] ?? [], [Response::HTTP_NOT_FOUND]));
+            $builder->setParameter('whitedigital.audit.excluded_response_codes', $config['excluded_response_codes'] ?? [Response::HTTP_NOT_FOUND]);
             $builder->setParameter('whitedigital.audit.audit_types', array_merge($config['additional_audit_types'] ?? [], self::AUDIT_TYPES));
 
             $container->import('../config/services.php');

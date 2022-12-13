@@ -8,16 +8,19 @@ use Doctrine\Persistence\Event\LifecycleEventArgs;
 use ReflectionClass;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Contracts\Translation\TranslatorInterface;
-use WhiteDigital\Audit\Entity\Audit;
-use WhiteDigital\Audit\Service\AuditService;
+use WhiteDigital\Audit\AuditBundle;
+use WhiteDigital\Audit\Contracts\AuditEntityInterface;
+use WhiteDigital\Audit\Contracts\AuditServiceInterface;
 
 use function array_key_exists;
+use function class_implements;
+use function in_array;
 use function sprintf;
 
 class AuditDoctrineEventSubscriber implements EventSubscriberInterface
 {
     public function __construct(
-        private readonly AuditService $audit,
+        private readonly AuditServiceInterface $audit,
         private readonly TranslatorInterface $translator,
     ) {
     }
@@ -64,12 +67,12 @@ class AuditDoctrineEventSubscriber implements EventSubscriberInterface
     private function logActivity(string $message, LifecycleEventArgs $args): void
     {
         $entity = $args->getObject();
-        if (Audit::class === $entity::class) {
+        if (in_array(AuditEntityInterface::class, class_implements($entity::class), true)) {
             return;
         }
 
         $classNameTranslation = $this->translator->trans('entity.' . (new ReflectionClass($entity))->getShortName());
         $data = $this->createEntityAuditData($args, $entity);
-        $this->audit->audit('db', sprintf('%s: %s', $message, $classNameTranslation), $data);
+        $this->audit->audit(AuditBundle::DB, sprintf('%s: %s', $message, $classNameTranslation), $data);
     }
 }

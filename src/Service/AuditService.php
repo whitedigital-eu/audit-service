@@ -13,9 +13,11 @@ use Symfony\Component\Security\Core\Security;
 use Symfony\Contracts\Translation\TranslatorInterface;
 use Throwable;
 use WhiteDigital\Audit\AuditBundle;
+use WhiteDigital\Audit\Contracts\AuditEntityInterface;
 use WhiteDigital\Audit\Contracts\AuditServiceInterface;
 use WhiteDigital\Audit\Entity\Audit;
 
+use function class_implements;
 use function in_array;
 use function mb_strimwidth;
 use function method_exists;
@@ -39,7 +41,7 @@ class AuditService implements AuditServiceInterface
         $this->auditTypes = $this->bag->get('whitedigital.audit.audit_types');
     }
 
-    public function auditException(Throwable $exception, ?string $url = null): void
+    public function auditException(Throwable $exception, ?string $url = null, string $class = Audit::class): void
     {
         if (
             method_exists($exception, 'getStatusCode') &&
@@ -54,16 +56,21 @@ class AuditService implements AuditServiceInterface
             'file' => $exception->getFile(),
             'line' => $exception->getLine(),
             'stackTrace' => $exception->getTraceAsString(),
-        ]);
+        ], $class);
     }
 
-    public function audit(string $type, string $message, array $data = []): void
+    public function audit(string $type, string $message, array $data = [], string $class = Audit::class): void
     {
         if (!in_array($type, $this->auditTypes, true)) {
             throw new InvalidArgumentException(sprintf('Invalid type: %s. Allowed types: %s', $type, rtrim(implode(' ,', $this->auditTypes), ', ')));
         }
 
-        $audit = (new Audit())
+        if (!in_array(AuditEntityInterface::class, class_implements($class), true)) {
+            throw new InvalidArgumentException(sprintf('To use other entity than "%s" in audit, "%s" must implement "%s"', Audit::class, $class, AuditEntityInterface::class));
+        }
+
+        /** @var AuditEntityInterface $audit */
+        $audit = (new $class())
             ->setUserIdentifier($this->security->getUser()?->getUserIdentifier())
             ->setIpAddress($this->requestStack->getMainRequest()?->getClientIp())
             ->setCategory($this->translator->trans(sprintf('audit.%s', $type)))
