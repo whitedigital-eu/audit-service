@@ -8,13 +8,12 @@ use Doctrine\Persistence\ObjectManager;
 use InvalidArgumentException;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 use Symfony\Component\HttpFoundation\RequestStack;
-use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Security\Core\Security;
 use Symfony\Contracts\Translation\TranslatorInterface;
 use Throwable;
-use WhiteDigital\Audit\AuditBundle;
 use WhiteDigital\Audit\Contracts\AuditEntityInterface;
 use WhiteDigital\Audit\Contracts\AuditServiceInterface;
+use WhiteDigital\Audit\Contracts\AuditType;
 use WhiteDigital\Audit\Entity\Audit;
 
 use function class_implements;
@@ -36,8 +35,8 @@ class AuditService implements AuditServiceInterface
         ManagerRegistry $registry,
         private readonly ParameterBagInterface $bag,
     ) {
-        $this->entityManager = $registry->getManager($this->bag->get('whitedigital.audit.entity_manager'));
-        $this->excludedCodes = array_merge($this->bag->get('whitedigital.audit.excluded_response_codes'), [Response::HTTP_NOT_FOUND]);
+        $this->entityManager = $registry->getManager($this->bag->get('whitedigital.audit.audit_entity_manager'));
+        $this->excludedCodes = $this->bag->get('whitedigital.audit.excluded_response_codes');
         $this->auditTypes = $this->bag->get('whitedigital.audit.audit_types');
     }
 
@@ -50,7 +49,7 @@ class AuditService implements AuditServiceInterface
             return;
         }
 
-        $this->audit(AuditBundle::EXCEPTION, mb_strimwidth($exception->getMessage(), 0, 500, '...'), [
+        $this->audit(AuditType::EXCEPTION, mb_strimwidth($exception->getMessage(), 0, 500, '...'), [
             'exceptionClass' => $exception::class,
             'url' => $url,
             'file' => $exception->getFile(),
