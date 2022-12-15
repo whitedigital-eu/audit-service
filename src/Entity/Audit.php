@@ -15,6 +15,7 @@ use WhiteDigital\EntityResourceMapper\Entity\BaseEntity;
 #[ORM\Index(fields: ['userIdentifier'])]
 #[ORM\Index(fields: ['createdAt'])]
 #[ORM\Index(fields: ['updatedAt'])]
+#[ORM\HasLifecycleCallbacks]
 class Audit extends BaseEntity implements AuditEntityInterface
 {
     #[ORM\Id]

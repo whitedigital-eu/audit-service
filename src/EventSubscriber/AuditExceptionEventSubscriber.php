@@ -5,11 +5,11 @@ namespace WhiteDigital\Audit\EventSubscriber;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\HttpKernel\Event\ExceptionEvent;
 use Symfony\Component\HttpKernel\KernelEvents;
-use WhiteDigital\Audit\Service\AuditService;
+use WhiteDigital\Audit\Contracts\AuditServiceInterface;
 
 class AuditExceptionEventSubscriber implements EventSubscriberInterface
 {
-    public function __construct(private readonly AuditService $audit)
+    public function __construct(private readonly AuditServiceInterface $audit)
     {
     }
 

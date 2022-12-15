@@ -6,7 +6,7 @@ use Throwable;
 
 interface AuditServiceInterface
 {
-    public function audit(string $type, string $message, array $data = []);
+    public function audit(string $type, string $message, array $data = [], string $class = '');
 
-    public function auditException(Throwable $exception, ?string $url = null);
+    public function auditException(Throwable $exception, ?string $url = null, string $class = '');
 }

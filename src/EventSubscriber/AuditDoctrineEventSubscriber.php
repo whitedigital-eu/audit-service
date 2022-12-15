@@ -2,17 +2,19 @@
 
 namespace WhiteDigital\Audit\EventSubscriber;
 
-use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\Bundle\DoctrineBundle\EventSubscriber\EventSubscriberInterface;
 use Doctrine\ORM\Events;
+use Doctrine\ORM\PersistentCollection;
 use Doctrine\Persistence\Event\LifecycleEventArgs;
-use ReflectionClass;
-use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Contracts\Translation\TranslatorInterface;
-use WhiteDigital\Audit\AuditBundle;
+use Throwable;
 use WhiteDigital\Audit\Contracts\AuditEntityInterface;
 use WhiteDigital\Audit\Contracts\AuditServiceInterface;
+use WhiteDigital\Audit\Contracts\AuditType;
+use WhiteDigital\EntityResourceMapper\Entity\BaseEntity;
 
 use function array_key_exists;
+use function array_map;
 use function class_implements;
 use function in_array;
 use function sprintf;
@@ -25,12 +27,12 @@ class AuditDoctrineEventSubscriber implements EventSubscriberInterface
     ) {
     }
 
-    public static function getSubscribedEvents(): array
+    public function getSubscribedEvents(): array
     {
         return [
-            Events::postPersist,
-            Events::postRemove,
-            Events::postUpdate,
+            Events::postPersist => 'postPersist',
+            Events::postRemove => 'postRemove',
+            Events::postUpdate => 'postUpdate',
         ];
     }
 
@@ -41,38 +43,52 @@ class AuditDoctrineEventSubscriber implements EventSubscriberInterface
 
     public function postRemove(LifecycleEventArgs $args): void
     {
-        $this->logActivity($this->translator->trans('entity.remove'), $args); // izdzēstie dati
+        $this->logActivity($this->translator->trans('entity.remove'), $args);
     }
 
     public function postUpdate(LifecycleEventArgs $args): void
     {
-        $this->logActivity($this->translator->trans('entity.update'), $args); // vecie dati
+        $this->logActivity($this->translator->trans('entity.update'), $args);
     }
 
-    private function createEntityAuditData(LifecycleEventArgs $args, object $entity): ?array
-    {
-        $entityManager = $args->getObjectManager();
-        if ($entityManager instanceof EntityManagerInterface) {
-            $changeSet = $entityManager->getUnitOfWork()->getEntityChangeSet($entity);
-            if (!array_key_exists('id', $changeSet)) {
-                $changeSet = ['id' => [$entity->getId(), $entity->getId()]] + $changeSet;
-            }
-
-            return $changeSet;
-        }
-
-        return null;
-    }
-
-    private function logActivity(string $message, LifecycleEventArgs $args): void
+    private function logActivity(string $action, LifecycleEventArgs $args): void
     {
         $entity = $args->getObject();
         if (in_array(AuditEntityInterface::class, class_implements($entity::class), true)) {
             return;
         }
 
-        $classNameTranslation = $this->translator->trans('entity.' . (new ReflectionClass($entity))->getShortName());
-        $data = $this->createEntityAuditData($args, $entity);
-        $this->audit->audit(AuditBundle::DB, sprintf('%s: %s', $message, $classNameTranslation), $data);
+        $entityManager = $args->getObjectManager();
+        $originalEntityData = $entityManager->getUnitOfWork()->getOriginalEntityData($entity);
+        if (!array_key_exists('id', $originalEntityData)) {
+            $originalEntityData['id'] = $entity->getId();
+        }
+        $originalEntityData = $this->normalizeEntityCollections($originalEntityData);
+
+        $this->audit->audit(AuditType::DB, sprintf('%s on %s', $action, $entity::class), $originalEntityData);
+    }
+
+    private function normalizeEntityCollections(mixed $entity): array|int|string
+    {
+        return array_map(static function ($value) {
+            if ($value instanceof PersistentCollection) {
+                $collectionValue = [];
+                foreach ($value as $item) {
+                    try {
+                        $collectionValue[] = $item->getId();
+                    } catch (Throwable) {
+                        $collectionValue[] = '[cascade_persist]';
+                    }
+                }
+
+                return $collectionValue;
+            }
+
+            if ($value instanceof BaseEntity) {
+                return $value->getId();
+            }
+
+            return $value;
+        }, $entity);
     }
 }
