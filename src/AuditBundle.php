@@ -28,6 +28,12 @@ class AuditBundle extends AbstractBundle implements AuditType
             $builder->setParameter('whitedigital.audit.excluded_response_codes', $audit['excluded_response_codes'] ?? [Response::HTTP_NOT_FOUND]);
             $builder->setParameter('whitedigital.audit.audit_types', array_merge($audit['additional_audit_types'] ?? [], AuditType::AUDIT_TYPES));
 
+            if (true === $audit['custom_configuration'] ?? false) {
+                $container->import('../config/void_audit.php');
+            } else {
+                $container->import('../config/audit_service.php');
+            }
+
             $container->import('../config/services.php');
         }
     }
@@ -53,26 +59,32 @@ class AuditBundle extends AbstractBundle implements AuditType
                 ->canBeEnabled()
                 ->addDefaultsIfNotSet()
                 ->children()
-                    ->scalarNode('audit_entity_manager')->cannotBeEmpty()->end()
-                    ->scalarNode('default_entity_manager')->cannotBeEmpty()->end()
+                    ->scalarNode('audit_entity_manager')->defaultNull()->end()
+                    ->scalarNode('default_entity_manager')->defaultNull()->end()
                     ->arrayNode('excluded_response_codes')
                         ->scalarPrototype()->end()
                     ->end()
                     ->arrayNode('additional_audit_types')
                         ->scalarPrototype()->end()
                     ->end()
-                    ->booleanNode('set_doctrine_mappings')->defaultValue(true)->end()
+                    ->booleanNode('set_doctrine_mappings')->defaultTrue()->end()
+                    ->booleanNode('custom_configuration')->defaultFalse()->end()
                 ->end()
             ->end();
     }
 
     private function validate(array $config): void
     {
-        if (null === ($em = $config['audit_entity_manager'] ?? null) || null === ($dem = $config['default_entity_manager'] ?? null)) {
-            throw new InvalidConfigurationException('WhiteDigital\Audit: "audit_entity_manager" and "default_entity_manager" names must be set');
+        $auditEntityManager = $config['audit_entity_manager'] ?? null;
+        $defaultEntityManager = $config['default_entity_manager'] ?? null;
+
+        if (false === ($config['custom_configuration'] ?? false)) {
+            if (null === $auditEntityManager || null === $defaultEntityManager) {
+                throw new InvalidConfigurationException('WhiteDigital\Audit: "audit_entity_manager" and "default_entity_manager" names must be set');
+            }
         }
 
-        if ($em === $dem) {
+        if (null !== $auditEntityManager && null !== $defaultEntityManager && $auditEntityManager === $defaultEntityManager) {
             throw new InvalidConfigurationException('WhiteDigital\Audit: "audit_entity_manager" and "default_entity_manager" names must be different');
         }
     }

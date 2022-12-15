@@ -6,9 +6,12 @@ now package only ships with doctrine implementation to save data,
 but you can easily extend functionality (see below) to use other
 means of storage.
 
-### Requirements
+### System Requirements
 PHP 8.1+  
 Symfony 6.1+
+
+### Project Requirements
+**2 separate Doctrine entity managers (*if using provided AuditService*)**
 
 ### Installation
 The recommended way to install is via Composer:
@@ -17,59 +20,37 @@ The recommended way to install is via Composer:
 composer require whitedigital-eu/audit-service
 ```
 ---
-
 ### Configuration
-By default after installation, audit service bundle is disabled. To enable it, just do:
-yaml:
-```yaml
-audit:
-    enable: true
-```
-php:
-```php
-use Symfony\Config\AuditConfig;
+**Configuration differs between default setup and overridden one.** If you are interested in configuration 
+for overriding part of package, scroll down to appropriate section.  
 
-return static function (AuditConfig $config): void {
-    $config
-        ->enabled(true);
-};
-```
-If you have only one entity manager configured for project, 
-this is all configuration needed to use the package.  
-If you have multiple entity managers, you need to pass manager name
-to configuration:  
+By default after installation, audit service bundle is disabled. To enable it, you need to add
+following (or similar configuration):  
 ```yaml
-audit:
-    enable: true
-    entity_manager: <name>
+whitedigital:
+    audit:
+        enable: true
+        audit_entity_manager: audit
+        default_entity_manager: default
 ```
 ```php
-use Symfony\Config\AuditConfig;
+use Symfony\Config\WhitedigitalConfig;
 
-return static function (AuditConfig $config): void {
+return static function (WhitedigitalConfig $config): void {
     $config
-        ->enabled(true)
-        ->entityManager('<name>');
+        ->audit()
+            ->enabled(true)
+            ->auditEntityManager('audit')
+            ->defaultEntityManager('default');
 };
 ```
-If you need Audit to be available for default and secondary entity
-manager, you can pass extra configuration:
-```yaml
-audit:
-    enable: true
-    entity_manager: <name>
-    default_entity_manager: default
-```
-```php
-use Symfony\Config\AuditConfig;
+> `audit_entity_manager` is entity manager used for audit  
+> `default_entity_manager` is entity manager you use for database operations  
+> 
+Logic is split between 2 managers because it is easier to audit database exception this way. If done
+with one entity manager, a lot extra steps need to be taken (opening closed entity manager, checking status 
+of operations, etc.)
 
-return static function (AuditConfig $config): void {
-    $config
-        ->enabled(true)
-        ->entityManager('<name>')
-        ->defaultEntityManager('default');
-};
-```
 After this, you need to update your database schema to use Audit entity.  
 If using migrations:
 ```shell
@@ -83,12 +64,12 @@ bin/console doctrine:schema:update --force
 This is it, now you can use audit. It is configured and autowired
 as `AuditServiceInterface`.
 ```php
-use WhiteDigital\Audit\AuditBundle;
+use WhiteDigital\Audit\Contracts\AuditType;
 use WhiteDigital\Audit\Contracts\AuditServiceInterface;
 
 public function __construct(private AuditServiceInterface $audit){}
 
-$this->audit->audit(AuditBundle::EXCEPTION, 'something happened');
+$this->audit->audit(AuditType::EXCEPTION, 'something happened');
 
 try {
     somefunction();
@@ -97,58 +78,60 @@ try {
 }
 ```
 ---
-Audit service comes with 2 event subscribers: one for exceptions and one for database events.  
+Audit service comes with 2 event subscribers: one for exceptions and one for database events.
 
 **Exception subscriber**:  
 By default exception subscriber audits all exceptions, except 404 response code. you can override this logic by:
 ```yaml
-audit:
-    enabled: true
-    excluded_response_codes:
-        - 404
-        - 405
+whitedigital:
+    audit:
+        enabled: true
+        excluded_response_codes:
+            - 404
+            - 405
 ```
 ```php
-use Symfony\Config\AuditConfig;
+use Symfony\Config\WhitedigitalConfig;
+use Symfony\Component\HttpFoundation\Response;
 
-return static function (AuditConfig $config): void {
+return static function (WhitedigitalConfig $config): void {
     $config
-        ->enabled(true)
-        ->entityManager('<name>')
-        ->excludedResponseCodes([
-            404,
-            405,
-        ])
+        ->audit()
+            ->enabled(true)
+            ->excludedResponseCodes([
+                Response::HTTP_NOT_FOUND,
+                Response::HTTP_METHOD_NOT_ALLOWED,
+            ]);
 };
 ```
 ---
-
 ### Allowed Audit types
 To not to create chaos within audit records, it is only allowed to use specified  audit types.  
-**Default values are: `AUTHENTICATION`, `DATABASE`, `ETL_PIPELINE`, `EXCEPTION` and `EXTERNAL_CALL`.**  
+**Default values are: `AUTHENTICATION`, `DATABASE`, `ETL_PIPELINE`, `EXCEPTION` and `EXTERNAL_CALL`.**
 
 If you wish to add more types, configure new types as so:
 ```yaml
-audit:
-    enabled: true
-    additional_audit_types:
-        - 'audit'
-        - 'test'
+whitedigital:
+    audit:
+        enabled: true
+        additional_audit_types:
+            - 'audit'
+            - 'test'
 ```
 ```php
-use Symfony\Config\AuditConfig;
+use Symfony\Config\WhitedigitalConfig;
 
-return static function (AuditConfig $config): void {
+return static function (WhitedigitalConfig $config): void {
     $config
-        ->enabled(true)
-        ->additionalAuditTypes([
-            'audit',
-            'test',
-        ])
+        ->audit()
+            ->enabled(true)
+            ->additionalAuditTypes([
+                'test',
+                'audit',
+            ]);
 };
 ```
 ---
-
 ### Overriding parts of bundle
 
 **Overriding audit service**  
@@ -167,6 +150,27 @@ $services
     ->set(AuditServiceInterface::class)
     ->class(YourAuditService::class);
 ```
+If your `AuditServiceInterface` does not use database as an audit storage, you need to disable part
+of this package that requires 2 entity managers. You can do it like this:
+```yaml
+whitedigital:
+    audit:
+        enable: true
+        custom_configuration: true
+```
+```php
+use Symfony\Config\WhitedigitalConfig;
+
+return static function (WhitedigitalConfig $config): void {
+    $config
+        ->audit()
+            ->enabled(true)
+            ->customConfiguration(true);
+};
+```
+Using `customConfiguration` option, disables `AuditService` provided by this package. Not to brake 
+application this way, dummy service is provided while you don't override it.
+
 **Overriding default entity**  
 By default, Audit entity is based on `BaseEntity` that comes from `whitedigital-eu/entity-resource-mapper-bundle`.  
 If you wish not to use this base at all, you need to create new Entity and implement `AuditEntityInterface` into it:
@@ -194,20 +198,19 @@ use WhiteDigital\Audit\Entity\Audit as BaseAudit;
 #[ORM\Table('new_audit_table_name')]
 class AuditEntity extends BaseAudit {}
 ```
-
 Now when you use `audit()` or `auditException()` functions in your project, you need to tell service to
 use your entity:
 ```php
-use WhiteDigital\Audit\AuditBundle;
+use WhiteDigital\Audit\Contracts\AuditType;
 use WhiteDigital\Audit\Contracts\AuditServiceInterface;
 
 use App\Entity\AuditEntity; // example
 
 public function __construct(private AuditServiceInterface $audit){}
 
-$this->audit->audit(AuditBundle::EXCEPTION, 'something happened', [], AuditEntity::class);
+$this->audit->audit(AuditType::EXTERNAL, 'something happened', [], AuditEntity::class);
 
-$this->audit->audit(AuditBundle::EXCEPTION, 'something happened', class: AuditEntity::class);
+$this->audit->audit(AuditType::ETL, 'something happened', class: AuditEntity::class);
 
 try {
     somefunction();
@@ -216,4 +219,23 @@ try {
     
     $this->audit->auditException($exception, class: AuditEntity::class);
 }
+```
+This bundle automatically adds `WhiteDigital\Audit\Entity` namespace to both given entity managers. 
+If you wish to not it to do it, for example, if you don't use default entity or maybe don't store 
+audits in database at all, you need to configure this to disable it:
+```yaml
+whitedigital:
+    audit:
+        enable: true
+        set_doctrine_mappings: false
+```
+```php
+use Symfony\Config\WhitedigitalConfig;
+
+return static function (WhitedigitalConfig $config): void {
+    $config
+        ->audit()
+            ->enabled(true)
+            ->setDoctrineMappings(false);
+};
 ```
