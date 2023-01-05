@@ -1,7 +1,6 @@
 <?php declare(strict_types = 1);
 
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
-use WhiteDigital\Audit\Contracts\AuditServiceInterface;
 use WhiteDigital\Audit\Service\AuditService;
 
 use function Symfony\Component\DependencyInjection\Loader\Configurator\service;
@@ -13,11 +12,10 @@ return static function (ContainerConfigurator $container): void {
         ->autowire()
         ->autoconfigure();
 
-    $services->remove(AuditServiceInterface::class);
-
     $services
-        ->set(AuditServiceInterface::class)
+        ->set('whitedigital.audit.service.audit')
         ->class(AuditService::class)
+        ->tag('whitedigital.audit', ['priority' => 1, ], )
         ->args([
             service('request_stack'),
             service('security.helper'),

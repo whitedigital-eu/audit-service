@@ -2,12 +2,12 @@
 
 namespace Symfony\Component\DependencyInjection\Loader\Configurator;
 
-use WhiteDigital\Audit\Contracts\AuditServiceInterface;
 use WhiteDigital\Audit\Service\AuditVoidService;
 
 return static function (ContainerConfigurator $container): void {
     $container
         ->services()
-        ->set(AuditServiceInterface::class)
-        ->class(AuditVoidService::class);
+        ->set('whitedigital.audit.service.audit_void')
+        ->class(AuditVoidService::class)
+        ->tag('whitedigital.audit', ['priority' => 0, ], );
 };

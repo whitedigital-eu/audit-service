@@ -27,6 +27,7 @@ class AuditService implements AuditServiceInterface
     private readonly ObjectManager $entityManager;
     private readonly array $excludedCodes;
     private readonly array $auditTypes;
+    private readonly array $excludedPaths;
 
     public function __construct(
         private readonly RequestStack $requestStack,
@@ -38,6 +39,7 @@ class AuditService implements AuditServiceInterface
         $this->entityManager = $registry->getManager($this->bag->get('whitedigital.audit.audit_entity_manager'));
         $this->excludedCodes = $this->bag->get('whitedigital.audit.excluded_response_codes');
         $this->auditTypes = $this->bag->get('whitedigital.audit.audit_types');
+        $this->excludedPaths = $this->bag->get('whitedigital.audit.excluded_paths');
     }
 
     public function auditException(Throwable $exception, ?string $url = null, string $class = Audit::class): void
@@ -46,6 +48,10 @@ class AuditService implements AuditServiceInterface
             method_exists($exception, 'getStatusCode') &&
             in_array($exception->getStatusCode(), $this->excludedCodes, true, )
         ) {
+            return;
+        }
+
+        if (in_array($url, $this->excludedPaths, true)) {
             return;
         }
 

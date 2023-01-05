@@ -11,6 +11,7 @@ use Symfony\Component\HttpKernel\Bundle\AbstractBundle;
 use WhiteDigital\Audit\Contracts\AuditType;
 
 use function array_merge;
+use function array_merge_recursive;
 
 class AuditBundle extends AbstractBundle implements AuditType
 {
@@ -18,15 +19,17 @@ class AuditBundle extends AbstractBundle implements AuditType
 
     public function loadExtension(array $config, ContainerConfigurator $container, ContainerBuilder $builder): void
     {
-        $audit = $config['audit'];
+        $audit = $config['audit'] ?? [];
 
-        if (true === $audit['enabled']) {
+        if (true === $audit['enabled'] ?? false) {
             $this->validate($audit);
 
             $builder->setParameter('whitedigital.audit.enabled', $audit['enabled']);
             $builder->setParameter('whitedigital.audit.audit_entity_manager', $audit['audit_entity_manager']);
-            $builder->setParameter('whitedigital.audit.excluded_response_codes', $audit['excluded_response_codes'] ?? [Response::HTTP_NOT_FOUND]);
+            $builder->setParameter('whitedigital.audit.excluded_response_codes', $audit['excluded']['response_codes'] ?? [Response::HTTP_NOT_FOUND]);
             $builder->setParameter('whitedigital.audit.audit_types', array_merge($audit['additional_audit_types'] ?? [], AuditType::AUDIT_TYPES));
+            $builder->setParameter('whitedigital.audit.excluded_paths', $audit['excluded']['paths'] ?? []);
+            $builder->setParameter('whitedigital.audit.excluded_routes', $audit['excluded']['routes'] ?? []);
 
             if (true === $audit['custom_configuration'] ?? false) {
                 $container->import('../config/void_audit.php');
@@ -36,17 +39,25 @@ class AuditBundle extends AbstractBundle implements AuditType
 
             $container->import('../config/services.php');
         }
+
+        $container->import('../config/locator.php');
     }
 
     public function prependExtension(ContainerConfigurator $container, ContainerBuilder $builder): void
     {
-        $audit = $builder->getExtensionConfig('whitedigital')[0]['audit'];
+        $audit = $builder->getExtensionConfig('whitedigital')[0]['audit'] ?? [];
 
         if (true === ($audit['enabled'] ?? false) && true === ($audit['set_doctrine_mappings'] ?? true)) {
             $this->validate($audit);
 
-            $this->addDoctrineConfig($container, $audit['audit_entity_manager']);
-            $this->addDoctrineConfig($container, $audit['default_entity_manager']);
+            $orm = array_merge_recursive(...$builder->getExtensionConfig('doctrine'))['orm'];
+
+            if ([] === ($mappings = $orm['entity_managers'][$audit['default_entity_manager']]['mappings'] ?? [])) {
+                $mappings = $orm['mappings'] ?? [];
+            }
+
+            $this->addDoctrineConfig($container, $audit['audit_entity_manager'], $mappings);
+            $this->addDoctrineConfig($container, $audit['default_entity_manager'], $mappings);
         }
     }
 
@@ -61,14 +72,25 @@ class AuditBundle extends AbstractBundle implements AuditType
                 ->children()
                     ->scalarNode('audit_entity_manager')->defaultNull()->end()
                     ->scalarNode('default_entity_manager')->defaultNull()->end()
-                    ->arrayNode('excluded_response_codes')
-                        ->scalarPrototype()->end()
-                    ->end()
                     ->arrayNode('additional_audit_types')
                         ->scalarPrototype()->end()
                     ->end()
                     ->booleanNode('set_doctrine_mappings')->defaultTrue()->end()
                     ->booleanNode('custom_configuration')->defaultFalse()->end()
+                    ->arrayNode('excluded')
+                        ->addDefaultsIfNotSet()
+                        ->children()
+                            ->arrayNode('response_codes')
+                                ->scalarPrototype()->end()
+                            ->end()
+                            ->arrayNode('paths')
+                                ->scalarPrototype()->end()
+                            ->end()
+                            ->arrayNode('routes')
+                                ->scalarPrototype()->end()
+                            ->end()
+                        ->end()
+                    ->end()
                 ->end()
             ->end();
     }
@@ -89,23 +111,23 @@ class AuditBundle extends AbstractBundle implements AuditType
         }
     }
 
-    private function addDoctrineConfig(ContainerConfigurator $container, string $entityManager): void
+    private function addDoctrineConfig(ContainerConfigurator $container, string $entityManager, array $mappings): void
     {
+        $mappings['Audit'] = [
+            'type' => 'attribute',
+            'dir' => __DIR__ . '/Entity',
+            'alias' => 'Audit',
+            'prefix' => 'WhiteDigital\Audit\Entity',
+            'is_bundle' => false,
+            'mapping' => true,
+        ];
+
         $container->extension('doctrine', [
             'orm' => [
                 'entity_managers' => [
                     $entityManager => [
                         'naming_strategy' => 'doctrine.orm.naming_strategy.underscore_number_aware',
-                        'mappings' => [
-                            'Audit' => [
-                                'type' => 'attribute',
-                                'dir' => __DIR__ . '/Entity',
-                                'alias' => 'Audit',
-                                'prefix' => 'WhiteDigital\Audit\Entity',
-                                'is_bundle' => false,
-                                'mapping' => true,
-                            ],
-                        ],
+                        'mappings' => $mappings,
                     ],
                 ],
             ],
