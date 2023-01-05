@@ -31,7 +31,7 @@ class AuditDoctrineEventSubscriber implements EventSubscriberInterface
     {
         return [
             Events::postPersist => 'postPersist',
-            Events::postRemove => 'postRemove',
+            Events::preRemove => 'preRemove',
             Events::postUpdate => 'postUpdate',
         ];
     }
@@ -41,7 +41,7 @@ class AuditDoctrineEventSubscriber implements EventSubscriberInterface
         $this->logActivity($this->translator->trans('entity.create'), $args);
     }
 
-    public function postRemove(LifecycleEventArgs $args): void
+    public function preRemove(LifecycleEventArgs $args): void
     {
         $this->logActivity($this->translator->trans('entity.remove'), $args);
     }
@@ -59,7 +59,7 @@ class AuditDoctrineEventSubscriber implements EventSubscriberInterface
         }
 
         $entityManager = $args->getObjectManager();
-        $originalEntityData = $entityManager->getUnitOfWork()->getOriginalEntityData($entity);
+        $originalEntityData = $entityManager->getUnitOfWork()->getEntityChangeSet($entity);
         if (!array_key_exists('id', $originalEntityData)) {
             $originalEntityData['id'] = $entity->getId();
         }
