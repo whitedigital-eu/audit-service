@@ -21,7 +21,7 @@
         "symfony/http-foundation": ">=6.1",
         "symfony/http-kernel": ">=6.1",
         "symfony/security-bundle": ">=6.1",
-        "symfony/translation-contracts": "*",
+        "symfony/translation": ">=6.1",
         "whitedigital-eu/entity-resource-mapper-bundle": ">=0.16.0"
     },
     "require-dev": {
