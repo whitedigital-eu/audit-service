@@ -26,8 +26,10 @@ class AuditBundle extends AbstractBundle implements AuditType
 
             $builder->setParameter('whitedigital.audit.enabled', $audit['enabled']);
             $builder->setParameter('whitedigital.audit.audit_entity_manager', $audit['audit_entity_manager']);
-            $builder->setParameter('whitedigital.audit.excluded_response_codes', $audit['excluded_response_codes'] ?? [Response::HTTP_NOT_FOUND]);
+            $builder->setParameter('whitedigital.audit.excluded_response_codes', $audit['excluded']['response_codes'] ?? [Response::HTTP_NOT_FOUND]);
             $builder->setParameter('whitedigital.audit.audit_types', array_merge($audit['additional_audit_types'] ?? [], AuditType::AUDIT_TYPES));
+            $builder->setParameter('whitedigital.audit.excluded_paths', $audit['excluded']['paths'] ?? []);
+            $builder->setParameter('whitedigital.audit.excluded_routes', $audit['excluded']['routes'] ?? []);
 
             if (true === $audit['custom_configuration'] ?? false) {
                 $container->import('../config/void_audit.php');
@@ -68,14 +70,25 @@ class AuditBundle extends AbstractBundle implements AuditType
                 ->children()
                     ->scalarNode('audit_entity_manager')->defaultNull()->end()
                     ->scalarNode('default_entity_manager')->defaultNull()->end()
-                    ->arrayNode('excluded_response_codes')
-                        ->scalarPrototype()->end()
-                    ->end()
                     ->arrayNode('additional_audit_types')
                         ->scalarPrototype()->end()
                     ->end()
                     ->booleanNode('set_doctrine_mappings')->defaultTrue()->end()
                     ->booleanNode('custom_configuration')->defaultFalse()->end()
+                    ->arrayNode('excluded')
+                        ->addDefaultsIfNotSet()
+                        ->children()
+                            ->arrayNode('response_codes')
+                                ->scalarPrototype()->end()
+                            ->end()
+                            ->arrayNode('paths')
+                                ->scalarPrototype()->end()
+                            ->end()
+                            ->arrayNode('routes')
+                                ->scalarPrototype()->end()
+                            ->end()
+                        ->end()
+                    ->end()
                 ->end()
             ->end();
     }
