@@ -39,6 +39,8 @@ class AuditBundle extends AbstractBundle implements AuditType
 
             $container->import('../config/services.php');
         }
+
+        $container->import('../config/locator.php');
     }
 
     public function prependExtension(ContainerConfigurator $container, ContainerBuilder $builder): void

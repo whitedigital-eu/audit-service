@@ -9,8 +9,8 @@ use Doctrine\Persistence\Event\LifecycleEventArgs;
 use Symfony\Contracts\Translation\TranslatorInterface;
 use Throwable;
 use WhiteDigital\Audit\Contracts\AuditEntityInterface;
-use WhiteDigital\Audit\Contracts\AuditServiceInterface;
 use WhiteDigital\Audit\Contracts\AuditType;
+use WhiteDigital\Audit\Service\AuditServiceLocator;
 use WhiteDigital\EntityResourceMapper\Entity\BaseEntity;
 
 use function array_key_exists;
@@ -22,7 +22,7 @@ use function sprintf;
 class AuditDoctrineEventSubscriber implements EventSubscriberInterface
 {
     public function __construct(
-        private readonly AuditServiceInterface $audit,
+        private readonly AuditServiceLocator $audit,
         private readonly TranslatorInterface $translator,
     ) {
     }

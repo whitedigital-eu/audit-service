@@ -6,7 +6,7 @@ use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\HttpKernel\Event\ExceptionEvent;
 use Symfony\Component\HttpKernel\KernelEvents;
-use WhiteDigital\Audit\Contracts\AuditServiceInterface;
+use WhiteDigital\Audit\Service\AuditServiceLocator;
 
 use function in_array;
 
@@ -15,10 +15,10 @@ class AuditExceptionEventSubscriber implements EventSubscriberInterface
     private readonly array $excludedRoutes;
 
     public function __construct(
-        private readonly AuditServiceInterface $audit,
+        private readonly AuditServiceLocator $audit,
         ParameterBagInterface $bag,
     ) {
-        $this->excludedRoutes = $bag->get('whitedigital.audit.exluded_routes');
+        $this->excludedRoutes = $bag->get('whitedigital.audit.excluded_routes');
     }
 
     public static function getSubscribedEvents(): array
