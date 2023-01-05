@@ -2,6 +2,8 @@
 
 namespace WhiteDigital\Audit\EventSubscriber;
 
+use Symfony\Component\Console\ConsoleEvents;
+use Symfony\Component\Console\Event\ConsoleErrorEvent;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\HttpKernel\Event\ExceptionEvent;
@@ -24,6 +26,7 @@ class AuditExceptionEventSubscriber implements EventSubscriberInterface
     public static function getSubscribedEvents(): array
     {
         return [
+            ConsoleEvents::ERROR => 'handleConsoleErrorEvent',
             KernelEvents::EXCEPTION => 'handleExceptionEvent',
         ];
     }
@@ -35,5 +38,10 @@ class AuditExceptionEventSubscriber implements EventSubscriberInterface
         }
 
         $this->audit->auditException($event->getThrowable(), $event->getRequest()->getPathInfo());
+    }
+
+    public function handleConsoleErrorEvent(ConsoleErrorEvent $event): void
+    {
+        $this->audit->auditException($event->getError());
     }
 }
