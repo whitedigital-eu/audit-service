@@ -61,13 +61,12 @@ If by schema update:
 ```shell
 bin/console doctrine:schema:update --force
 ```
-This is it, now you can use audit. It is configured and autowired
-as `AuditServiceInterface`.
+This is it, now you can use audit. It is configured and autowired as `AuditServiceLocator`.
 ```php
 use WhiteDigital\Audit\Contracts\AuditType;
-use WhiteDigital\Audit\Contracts\AuditServiceInterface;
+use WhiteDigital\Audit\Service\AuditServiceLocator;
 
-public function __construct(private AuditServiceInterface $audit){}
+public function __construct(private AuditServiceLocator $audit){}
 
 $this->audit->audit(AuditType::EXCEPTION, 'something happened');
 
@@ -86,9 +85,10 @@ By default exception subscriber audits all exceptions, except 404 response code.
 whitedigital:
     audit:
         enabled: true
-        excluded_response_codes:
-            - 404
-            - 405
+        excluded:
+            response_codes:
+                - 404
+                - 405
 ```
 ```php
 use Symfony\Config\WhitedigitalConfig;
@@ -98,10 +98,58 @@ return static function (WhitedigitalConfig $config): void {
     $config
         ->audit()
             ->enabled(true)
-            ->excludedResponseCodes([
-                Response::HTTP_NOT_FOUND,
-                Response::HTTP_METHOD_NOT_ALLOWED,
-            ]);
+            ->excluded()
+                ->responseCodes([
+                    Response::HTTP_NOT_FOUND,
+                    Response::HTTP_METHOD_NOT_ALLOWED,
+                ]);
+};
+```
+By default exception subscriber audits all exceptions on all routes and paths. you can override this logic by:
+Path:
+```yaml
+whitedigital:
+    audit:
+        enabled: true
+        excluded:
+            paths:
+                - '/test'
+```
+```php
+use Symfony\Config\WhitedigitalConfig;
+use Symfony\Component\HttpFoundation\Response;
+
+return static function (WhitedigitalConfig $config): void {
+    $config
+        ->audit()
+            ->enabled(true)
+            ->excluded()
+                ->paths([
+                    '/test',
+                ]);
+};
+```
+Route:
+```yaml
+whitedigital:
+    audit:
+        enabled: true
+        excluded:
+            routes:
+                - 'app_test'
+```
+```php
+use Symfony\Config\WhitedigitalConfig;
+use Symfony\Component\HttpFoundation\Response;
+
+return static function (WhitedigitalConfig $config): void {
+    $config
+        ->audit()
+            ->enabled(true)
+            ->excluded()
+                ->routes([
+                    'app_test',
+                ]);
 };
 ```
 ---
@@ -140,17 +188,18 @@ To do so, implement `AuditServiceInterface` into your service and configure to u
 ```php
 //config/services.php
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
-use WhiteDigital\Audit\Contracts\AuditServiceInterface;
+use YourAuditService;
 
 $services = $containerConfigurator->services();
 
-$services->remove(AuditServiceInterface::class);
-
 $services
-    ->set(AuditServiceInterface::class)
-    ->class(YourAuditService::class);
+    ->set('app.audit.service')
+    ->class(YourAuditService::class)
+    ->tag('whitedigital.audit', ['priority' => 2]);
 ```
-If your `AuditServiceInterface` does not use database as an audit storage, you need to disable part
+> AuditService in this package comes with priority of 1. To override it, make sure to add priority higher than that.  
+
+If your custom AuditService does not use database as an audit storage, you need to disable part
 of this package that requires 2 entity managers. You can do it like this:
 ```yaml
 whitedigital:
@@ -202,11 +251,11 @@ Now when you use `audit()` or `auditException()` functions in your project, you 
 use your entity:
 ```php
 use WhiteDigital\Audit\Contracts\AuditType;
-use WhiteDigital\Audit\Contracts\AuditServiceInterface;
+use WhiteDigital\Audit\Service\AuditServiceLocator;
 
 use App\Entity\AuditEntity; // example
 
-public function __construct(private AuditServiceInterface $audit){}
+public function __construct(private AuditServiceLocator $audit){}
 
 $this->audit->audit(AuditType::EXTERNAL, 'something happened', [], AuditEntity::class);
 
