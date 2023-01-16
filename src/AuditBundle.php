@@ -24,9 +24,11 @@ class AuditBundle extends AbstractBundle implements AuditType
         if (true === $audit['enabled'] ?? false) {
             $this->validate($audit);
 
+            $erc = $audit['excluded']['response_codes'] ?? [];
+
             $builder->setParameter('whitedigital.audit.enabled', $audit['enabled']);
             $builder->setParameter('whitedigital.audit.audit_entity_manager', $audit['audit_entity_manager']);
-            $builder->setParameter('whitedigital.audit.excluded_response_codes', $audit['excluded']['response_codes'] ?? [Response::HTTP_NOT_FOUND]);
+            $builder->setParameter('whitedigital.audit.excluded_response_codes', [] === $erc ? [Response::HTTP_NOT_FOUND] : $erc);
             $builder->setParameter('whitedigital.audit.audit_types', array_merge($audit['additional_audit_types'] ?? [], AuditType::AUDIT_TYPES));
             $builder->setParameter('whitedigital.audit.excluded_paths', $audit['excluded']['paths'] ?? []);
             $builder->setParameter('whitedigital.audit.excluded_routes', $audit['excluded']['routes'] ?? []);
