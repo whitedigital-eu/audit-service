@@ -12,6 +12,7 @@
     "license": "MIT",
     "require": {
         "php": ">=8.1.0",
+        "ext-mbstring": "*",
         "doctrine/doctrine-bundle": "*",
         "doctrine/orm": "*",
         "doctrine/persistence": "*",
@@ -22,8 +23,8 @@
         "symfony/http-kernel": ">=6.2",
         "symfony/security-bundle": ">=6.2",
         "symfony/translation": ">=6.2",
-        "whitedigital-eu/entity-resource-mapper-bundle": ">=0.16.0",
-        "ext-mbstring": "*"
+        "whitedigital-eu/api-resource": ">=0.3",
+        "whitedigital-eu/entity-resource-mapper-bundle": ">=0.21.5"
     },
     "require-dev": {
         "friendsofphp/php-cs-fixer": "*",

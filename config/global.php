@@ -1,6 +1,7 @@
 <?php declare(strict_types = 1);
 
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
+use WhiteDigital\Audit\OpenApi\OpenApiFactory;
 use WhiteDigital\Audit\Service\AuditServiceLocator;
 
 return static function (ContainerConfigurator $container): void {
@@ -11,4 +12,5 @@ return static function (ContainerConfigurator $container): void {
         ->autoconfigure();
 
     $services->set(AuditServiceLocator::class);
+    $services->set(OpenApiFactory::class);
 };

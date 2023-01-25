@@ -3,8 +3,10 @@
 namespace WhiteDigital\Audit\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
+use WhiteDigital\Audit\ApiResource\AuditResource;
 use WhiteDigital\Audit\Contracts\AuditEntityInterface;
 use WhiteDigital\Audit\Repository\AuditRepository;
+use WhiteDigital\EntityResourceMapper\Attribute\Mapping;
 use WhiteDigital\EntityResourceMapper\Entity\BaseEntity;
 
 #[ORM\Entity(repositoryClass: AuditRepository::class)]
@@ -16,6 +18,7 @@ use WhiteDigital\EntityResourceMapper\Entity\BaseEntity;
 #[ORM\Index(fields: ['createdAt'])]
 #[ORM\Index(fields: ['updatedAt'])]
 #[ORM\HasLifecycleCallbacks]
+#[Mapping(AuditResource::class)]
 class Audit extends BaseEntity implements AuditEntityInterface
 {
     #[ORM\Id]
