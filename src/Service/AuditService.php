@@ -46,7 +46,7 @@ class AuditService implements AuditServiceInterface
     {
         if (
             method_exists($exception, 'getStatusCode') &&
-            in_array($exception->getStatusCode(), $this->excludedCodes, true, )
+            in_array($exception->getStatusCode(), $this->excludedCodes, true)
         ) {
             return;
         }
