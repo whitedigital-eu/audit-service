@@ -21,11 +21,9 @@ final readonly class OpenApiFactory implements OpenApiFactoryInterface
 
     public function __invoke(array $context = []): OpenApi
     {
-        $valid = $this->bag->has($key = 'whitedigital.audit.enabled') && true === $this->bag->get($key);
-        $validResource = $this->bag->has($resourceKey = 'whitedigital.audit.enable_audit_resource') && true === $this->bag->get($resourceKey);
         $openApi = $this->decorated->__invoke($context);
 
-        if (!$valid || !$validResource) {
+        if (!$this->validate()) {
             $filteredPaths = new Model\Paths();
             foreach ($openApi->getPaths()->getPaths() as $path => $pathItem) {
                 if (str_starts_with($path, '/api/wd/as/')) {
@@ -39,5 +37,14 @@ final readonly class OpenApiFactory implements OpenApiFactoryInterface
         }
 
         return $openApi;
+    }
+
+    public function validate(): bool
+    {
+        if ($this->bag->has($key = 'whitedigital.audit.enabled') && true === $this->bag->get($key)) {
+            return $this->bag->has($resourceKey = 'whitedigital.audit.enable_audit_resource') && true === $this->bag->get($resourceKey);
+        }
+
+        return false;
     }
 }
