@@ -39,7 +39,7 @@ final readonly class OpenApiFactory implements OpenApiFactoryInterface
         return $openApi;
     }
 
-    public function validate(): bool
+    private function validate(): bool
     {
         if ($this->bag->has($key = 'whitedigital.audit.enabled') && true === $this->bag->get($key)) {
             return $this->bag->has($resourceKey = 'whitedigital.audit.enable_audit_resource') && true === $this->bag->get($resourceKey);
