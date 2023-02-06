@@ -24,12 +24,11 @@ class AuditDoctrineEventSubscriber implements EventSubscriberInterface
     public function __construct(
         private readonly AuditServiceLocator $audit,
         private readonly TranslatorInterface $translator,
-        private bool                         $isEnabled = true,
-    )
-    {
+        private bool $isEnabled = true,
+    ) {
     }
 
-    public function setIsEnabled(bool $isEnabled)
+    public function setIsEnabled(bool $isEnabled): void
     {
         $this->isEnabled = $isEnabled;
     }
