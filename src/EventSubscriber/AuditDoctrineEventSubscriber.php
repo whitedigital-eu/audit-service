@@ -24,7 +24,13 @@ class AuditDoctrineEventSubscriber implements EventSubscriberInterface
     public function __construct(
         private readonly AuditServiceLocator $audit,
         private readonly TranslatorInterface $translator,
+        private bool $isEnabled = true,
     ) {
+    }
+
+    public function setIsEnabled(bool $isEnabled): void
+    {
+        $this->isEnabled = $isEnabled;
     }
 
     public function getSubscribedEvents(): array
@@ -53,6 +59,9 @@ class AuditDoctrineEventSubscriber implements EventSubscriberInterface
 
     private function logActivity(string $action, LifecycleEventArgs $args): void
     {
+        if (!$this->isEnabled) {
+            return;
+        }
         $entity = $args->getObject();
         if (in_array(AuditEntityInterface::class, class_implements($entity::class), true)) {
             return;
