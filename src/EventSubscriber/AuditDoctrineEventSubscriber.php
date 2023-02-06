@@ -62,6 +62,7 @@ class AuditDoctrineEventSubscriber implements EventSubscriberInterface
         if (!$this->isEnabled) {
             return;
         }
+
         $entity = $args->getObject();
         if (in_array(AuditEntityInterface::class, class_implements($entity::class), true)) {
             return;
