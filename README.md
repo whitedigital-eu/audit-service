@@ -288,3 +288,14 @@ return static function (WhitedigitalConfig $config): void {
             ->setDoctrineMappings(false);
 };
 ```
+**Overriding auditing of entity events**
+You can disable entity event auditing in runtime by calling setIsEnabled setter for entity event subscriber
+```php
+use WhiteDigital\Audit\EventSubscriber\AuditDoctrineEventSubscriber;
+
+public function __construct(private AuditDoctrineEventSubscriber $subscriber){}
+
+$this->subscriber->setIsEnabled(false);
+someFunction();
+$this->subscriber->setIsEnabled(true);
+```
