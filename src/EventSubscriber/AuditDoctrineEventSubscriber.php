@@ -36,9 +36,9 @@ class AuditDoctrineEventSubscriber implements EventSubscriberInterface
     public function getSubscribedEvents(): array
     {
         return [
-            Events::postPersist => 'postPersist',
-            Events::preRemove => 'preRemove',
-            Events::postUpdate => 'postUpdate',
+            Events::postPersist,
+            Events::preRemove,
+            Events::postUpdate,
         ];
     }
 
