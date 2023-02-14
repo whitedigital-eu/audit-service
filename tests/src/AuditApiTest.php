@@ -54,8 +54,6 @@ class AuditApiTest extends ApiTestCase
      * @throws RedirectionExceptionInterface
      * @throws ServerExceptionInterface
      * @throws TransportExceptionInterface
-     *
-     * @Depends \App\Tests\PasswordApiTest::testResetRequestSetSuccess
      */
     public function testGetCollection(): array
     {

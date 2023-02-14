@@ -41,6 +41,11 @@
             "WhiteDigital\\Audit\\": "src/"
         }
     },
+    "autoload": {
+        "psr-4": {
+            "WhiteDigital\\Audit\\Tests\\Source\\": "tests/src/"
+        }
+    },
     "minimum-stability": "dev",
     "prefer-stable": true,
     "config": {
