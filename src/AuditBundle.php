@@ -124,7 +124,7 @@ class AuditBundle extends AbstractBundle implements AuditType
                             ->end()
                         ->end()
                     ->end()
-                    ->booleanNode('enable_audit_resource')->defaultTrue()->end()
+                    ->booleanNode('enable_audit_resource')->defaultFalse()->end()
                 ->end()
             ->end();
     }
