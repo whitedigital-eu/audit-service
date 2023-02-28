@@ -157,6 +157,9 @@ return static function (WhitedigitalConfig $config): void {
 To not to create chaos within audit records, it is only allowed to use specified  audit types.  
 **Default values are: `AUTHENTICATION`, `DATABASE`, `ETL_PIPELINE`, `EXCEPTION` and `EXTERNAL_CALL`.**
 
+> If you don't have any custom types, you can use
+> `WhiteDigital\Audit\Contracts\AuditType` class for default constants.
+
 If you wish to add more types, configure new types as so:
 ```yaml
 whitedigital:
@@ -179,6 +182,34 @@ return static function (WhitedigitalConfig $config): void {
             ]);
 };
 ```
+It is possible to run symfony command that generates interface based on default and added types for easier code
+complete:
+```shell
+bin/console make:audit-types
+```
+This command will generate new file based on package configuration. By default, this command will make 
+`App\Audit\AuditType` class. You can override this name in configuration:  
+```yaml
+whitedigital:
+    audit:
+        enabled: true
+        audit_type_interface_namespace: 'App\Audit'
+        audit_type_interface_class_name: 'AuditType'
+```
+```php
+use Symfony\Config\WhitedigitalConfig;
+
+return static function (WhitedigitalConfig $config): void {
+    $config
+        ->audit()
+            ->enabled(true)
+            ->auditTypeInterfaceNamespace('App\Audit')
+            ->auditTypeInterfaceClassName('AuditType');
+};
+```
+> If you have this defined interface and want to add more allowed types, you can just add new types to it without
+> adding types to package configuration. Allowed types will be merged from configuration and interface.
+
 ---
 ### Api Resource
 If used within api platform, you may want to get audits as an api resource. To do that, you can enable that in 
