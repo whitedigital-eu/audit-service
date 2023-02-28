@@ -20,7 +20,7 @@ class AuditExceptionEventSubscriber implements EventSubscriberInterface
         private readonly AuditServiceLocator $audit,
         ParameterBagInterface $bag,
     ) {
-        $this->excludedRoutes = $bag->get('whitedigital.audit.excluded_routes');
+        $this->excludedRoutes = $bag->get('whitedigital.audit.excluded.routes');
     }
 
     public static function getSubscribedEvents(): array

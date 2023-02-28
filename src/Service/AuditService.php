@@ -37,16 +37,16 @@ class AuditService implements AuditServiceInterface
         private readonly ParameterBagInterface $bag,
     ) {
         $this->entityManager = $registry->getManager($this->bag->get('whitedigital.audit.audit_entity_manager'));
-        $this->excludedCodes = $this->bag->get('whitedigital.audit.excluded_response_codes');
-        $this->auditTypes = $this->bag->get('whitedigital.audit.audit_types');
-        $this->excludedPaths = $this->bag->get('whitedigital.audit.excluded_paths');
+        $this->excludedCodes = $this->bag->get('whitedigital.audit.excluded.response_codes');
+        $this->auditTypes = $this->bag->get('whitedigital.audit.additional_audit_types');
+        $this->excludedPaths = $this->bag->get('whitedigital.audit.excluded.paths');
     }
 
     public function auditException(Throwable $exception, ?string $url = null, string $class = Audit::class): void
     {
         if (
             method_exists($exception, 'getStatusCode') &&
-            in_array($exception->getStatusCode(), $this->excludedCodes, true, )
+            in_array($exception->getStatusCode(), $this->excludedCodes, true)
         ) {
             return;
         }
@@ -80,11 +80,11 @@ class AuditService implements AuditServiceInterface
     public function audit(string $type, string $message, array $data = [], string $class = Audit::class): void
     {
         if (!in_array($type, $this->auditTypes, true)) {
-            throw new InvalidArgumentException(sprintf('Invalid type: %s. Allowed types: %s', $type, rtrim(implode(' ,', $this->auditTypes), ', ')));
+            throw new InvalidArgumentException($this->translator->trans('invalid_parameter_list_allowed', ['parameter' => $type, 'allowed' => rtrim(implode(' ,', $this->auditTypes), ', ')], domain: 'Audit'));
         }
 
         if (!in_array(AuditEntityInterface::class, class_implements($class), true)) {
-            throw new InvalidArgumentException(sprintf('To use other entity than "%s" in audit, "%s" must implement "%s"', Audit::class, $class, AuditEntityInterface::class));
+            throw new InvalidArgumentException($this->translator->trans('missing_implementation', ['default' => Audit::class, 'current' => $class, 'interface' => AuditEntityInterface::class], domain: 'Audit'));
         }
 
         /** @var AuditEntityInterface $audit */

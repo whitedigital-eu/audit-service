@@ -36,9 +36,9 @@ class AuditDoctrineEventSubscriber implements EventSubscriberInterface
     public function getSubscribedEvents(): array
     {
         return [
-            Events::postPersist => 'postPersist',
-            Events::preRemove => 'preRemove',
-            Events::postUpdate => 'postUpdate',
+            Events::postPersist,
+            Events::preRemove,
+            Events::postUpdate,
         ];
     }
 
@@ -62,6 +62,7 @@ class AuditDoctrineEventSubscriber implements EventSubscriberInterface
         if (!$this->isEnabled) {
             return;
         }
+
         $entity = $args->getObject();
         if (in_array(AuditEntityInterface::class, class_implements($entity::class), true)) {
             return;
