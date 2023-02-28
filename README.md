@@ -157,6 +157,9 @@ return static function (WhitedigitalConfig $config): void {
 To not to create chaos within audit records, it is only allowed to use specified  audit types.  
 **Default values are: `AUTHENTICATION`, `DATABASE`, `ETL_PIPELINE`, `EXCEPTION` and `EXTERNAL_CALL`.**
 
+> If you don't have any custom types, you can use
+> `WhiteDigital\Audit\Contracts\AuditType` class for default constants.
+
 If you wish to add more types, configure new types as so:
 ```yaml
 whitedigital:
@@ -179,6 +182,57 @@ return static function (WhitedigitalConfig $config): void {
             ]);
 };
 ```
+It is possible to run symfony command that generates interface based on default and added types for easier code
+complete:
+```shell
+bin/console make:audit-types
+```
+This command will generate new file based on package configuration. By default, this command will make 
+`App\Audit\AuditType` class. You can override this name in configuration:  
+```yaml
+whitedigital:
+    audit:
+        enabled: true
+        audit_type_interface_namespace: 'App\Audit'
+        audit_type_interface_class_name: 'AuditType'
+```
+```php
+use Symfony\Config\WhitedigitalConfig;
+
+return static function (WhitedigitalConfig $config): void {
+    $config
+        ->audit()
+            ->enabled(true)
+            ->auditTypeInterfaceNamespace('App\Audit')
+            ->auditTypeInterfaceClassName('AuditType');
+};
+```
+> If you have this defined interface and want to add more allowed types, you can just add new types to it without
+> adding types to package configuration. Allowed types will be merged from configuration and interface.
+
+---
+### Api Resource
+If used within api platform, you may want to get audits as an api resource. To do that, you can enable that in 
+configuration:
+```yaml
+whitedigital:
+    audit:
+        enabled: true
+        enable_audit_resource: true
+```
+```php
+use Symfony\Config\WhitedigitalConfig;
+
+return static function (WhitedigitalConfig $config): void {
+    $config
+        ->audit()
+            ->enabled(true)
+            ->enableAuditResource(true);
+};
+```
+Now you should see `Audit` resource in api (and in documentation). Default iri for this resource 
+is `/api/wd/as/audits`. If you want to use different iri, you can read how to do it below in override section.
+
 ---
 ### Overriding parts of bundle
 
@@ -220,6 +274,7 @@ return static function (WhitedigitalConfig $config): void {
 Using `customConfiguration` option, disables `AuditService` provided by this package. Not to brake 
 application this way, dummy service is provided while you don't override it.
 
+---
 **Overriding default entity**  
 By default, Audit entity is based on `BaseEntity` that comes from `whitedigital-eu/entity-resource-mapper-bundle`.  
 If you wish not to use this base at all, you need to create new Entity and implement `AuditEntityInterface` into it:
@@ -288,7 +343,8 @@ return static function (WhitedigitalConfig $config): void {
             ->setDoctrineMappings(false);
 };
 ```
-**Overriding auditing of entity events**
+---
+**Overriding auditing of entity events**  
 You can disable entity event auditing in runtime by calling setIsEnabled setter for entity event subscriber
 ```php
 use WhiteDigital\Audit\EventSubscriber\AuditDoctrineEventSubscriber;
@@ -298,4 +354,49 @@ public function __construct(private AuditDoctrineEventSubscriber $subscriber){}
 $this->subscriber->setIsEnabled(false);
 someFunction();
 $this->subscriber->setIsEnabled(true);
+```
+---
+**Overriding api resource options**
+> **WARNING**: This overrides only configuration defined in `#ApiResource` attribute!  
+
+If you want to override any option defined within `ApiResource` attribute on api resource defined in 
+`WhiteDigital\Audit\ApiResource\Audit` you can do it with using `ExtendedApiResource` attribute.  
+For example, to override `routePrefix` to get iri of `/api/audits` instead of default `/api/wd/as/audits` do:
+1. Create new class that extends resource you want to override
+2. Add `ExtendedApiResouce` attribute insted of `ApiResource` attribute
+3. Pass only those options that you want to override, others will be taken from resource you are extending
+```php
+<?php declare(strict_types = 1);
+
+namespace App\ApiResource;
+
+use WhiteDigital\ApiResource\Attribute\ExtendedApiResource;
+use WhiteDigital\Audit\ApiResource\AuditResource as WDAuditResource;
+
+#[ExtendedApiResource(routePrefix: '')]
+class AuditResource extends WDAuditResource
+{
+}
+```
+`ExtendedApiResouce` attribute checks which resource you are extending and overrides options given in extension, 
+keeping other options same as in parent resource. 
+
+> **IMPORTANT**: You need to disable bundled resource in configuration, otherwise you will have 2 instances of audit
+> resource: one with `/api/audits` iri and one with `/api/wd/as/audits` iri.
+
+```yaml
+whitedigital:
+    audit:
+        enabled: true
+        enable_audit_resource: false
+```
+```php
+use Symfony\Config\WhitedigitalConfig;
+
+return static function (WhitedigitalConfig $config): void {
+    $config
+        ->audit()
+            ->enabled(true)
+            ->enableAuditResource(false);
+};
 ```

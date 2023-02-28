@@ -9,12 +9,4 @@ interface AuditType
     public const ETL = 'ETL_PIPELINE';
     public const EXCEPTION = 'EXCEPTION';
     public const EXTERNAL = 'EXTERNAL_CALL';
-
-    public const AUDIT_TYPES = [
-        self::AUTH,
-        self::DB,
-        self::ETL,
-        self::EXCEPTION,
-        self::EXTERNAL,
-    ];
 }

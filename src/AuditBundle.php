@@ -2,6 +2,9 @@
 
 namespace WhiteDigital\Audit;
 
+use ReflectionClass;
+use ReflectionClassConstant;
+use ReflectionException;
 use Symfony\Component\Config\Definition\Configurator\DefinitionConfigurator;
 use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
@@ -13,8 +16,12 @@ use WhiteDigital\ApiResource\DependencyInjections\Traits\DefineOrmMappings;
 use WhiteDigital\ApiResource\Functions;
 use WhiteDigital\Audit\Contracts\AuditType;
 
+use function array_map;
 use function array_merge;
 use function array_merge_recursive;
+use function array_unique;
+use function array_values;
+use function sort;
 
 class AuditBundle extends AbstractBundle implements AuditType
 {
@@ -53,7 +60,16 @@ class AuditBundle extends AbstractBundle implements AuditType
             }
 
             $builder->setParameter('whitedigital.audit.excluded.response_codes', $erc);
-            $builder->setParameter('whitedigital.audit.additional_audit_types', array_merge($audit['additional_audit_types'] ?? [], AuditType::AUDIT_TYPES));
+            $types = array_map('strtoupper', array_merge($audit['additional_audit_types'] ?? [], array_values(self::getConstants(AuditType::class))));
+            $types = array_unique($types);
+            sort($types);
+            $builder->setParameter('whitedigital.audit.additional_audit_types', $types);
+
+            $constants = [];
+            foreach ($types as $type) {
+                $constants[$type] = $type;
+            }
+            $builder->setParameter('whitedigital.audit.additional_audit_constants', $constants);
 
             if (!$builder->hasParameter($key1 = 'whitedigital.audit.excluded.paths')) {
                 $builder->setParameter($key1, []);
@@ -124,9 +140,20 @@ class AuditBundle extends AbstractBundle implements AuditType
                             ->end()
                         ->end()
                     ->end()
-                    ->booleanNode('enable_audit_resource')->defaultTrue()->end()
+                    ->booleanNode('enable_audit_resource')->defaultFalse()->end()
+                    ->scalarNode('audit_type_interface_namespace')->defaultValue('App\\Audit')->end()
+                    ->scalarNode('audit_type_interface_class_name')->defaultValue('AuditType')->end()
                 ->end()
             ->end();
+    }
+
+    public static function getConstants(string $class): array
+    {
+        try {
+            return (new ReflectionClass($class))->getConstants(ReflectionClassConstant::IS_PUBLIC);
+        } catch (ReflectionException) {
+            return [];
+        }
     }
 
     private function validate(array $config): void
