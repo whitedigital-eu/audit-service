@@ -55,13 +55,26 @@ class AuditService implements AuditServiceInterface
             return;
         }
 
-        $this->audit(AuditType::EXCEPTION, mb_strimwidth($exception->getMessage(), 0, 500, '...'), [
+        $data = [
             'exceptionClass' => $exception::class,
             'url' => $url,
             'file' => $exception->getFile(),
             'line' => $exception->getLine(),
             'stackTrace' => $exception->getTraceAsString(),
-        ], $class);
+        ];
+
+        $mainRequestPayload = $this->requestStack->getMainRequest()?->getContent() ?: '';
+        $subRequestPayload = $this->requestStack->getCurrentRequest()?->getContent() ?: '';
+
+        if ('' !== $mainRequestPayload) {
+            $data['main_request_payload'] = $mainRequestPayload;
+        }
+
+        if ('' !== $subRequestPayload && $mainRequestPayload !== $subRequestPayload) {
+            $data['sub_request_payload'] = $subRequestPayload;
+        }
+
+        $this->audit(AuditType::EXCEPTION, mb_strimwidth($exception->getMessage(), 0, 500, '...'), $data, $class);
     }
 
     public function audit(string $type, string $message, array $data = [], string $class = Audit::class): void
