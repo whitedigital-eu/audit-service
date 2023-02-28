@@ -3,5 +3,3 @@ composer.phar
 /vendor
 phpunit.xml
 *.cache
-
-.coverage/
