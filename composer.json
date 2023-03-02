@@ -42,7 +42,7 @@
             "WhiteDigital\\Audit\\": "src/"
         }
     },
-    "autoload": {
+    "autoload-dev": {
         "psr-4": {
             "WhiteDigital\\Audit\\Tests\\Source\\": "tests/src/"
         }
