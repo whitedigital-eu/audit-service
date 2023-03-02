@@ -37,6 +37,7 @@ class AuditExceptionEventSubscriber implements EventSubscriberInterface
             return;
         }
 
+        $event->getRequest()->setRequestFormat('jsonld');
         $this->audit->auditException($event->getThrowable(), $event->getRequest()->getPathInfo());
     }
 
