@@ -11,11 +11,11 @@ use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 use function str_starts_with;
 
 #[AsDecorator(decorates: 'api_platform.openapi.factory')]
-final readonly class OpenApiFactory implements OpenApiFactoryInterface
+final class OpenApiFactory implements OpenApiFactoryInterface
 {
     public function __construct(
-        private OpenApiFactoryInterface $decorated,
-        private ParameterBagInterface $bag,
+        private readonly OpenApiFactoryInterface $decorated,
+        private readonly ParameterBagInterface $bag,
     ) {
     }
 
