@@ -16,12 +16,15 @@ use WhiteDigital\ApiResource\DependencyInjections\Traits\DefineOrmMappings;
 use WhiteDigital\ApiResource\Functions;
 use WhiteDigital\Audit\Contracts\AuditType;
 
-use function array_map;
 use function array_merge;
 use function array_merge_recursive;
 use function array_unique;
 use function array_values;
+use function asort;
+use function is_numeric;
+use function ksort;
 use function sort;
+use function strtoupper;
 
 class AuditBundle extends AbstractBundle implements AuditType
 {
@@ -47,7 +50,7 @@ class AuditBundle extends AbstractBundle implements AuditType
     {
         $audit = $config['audit'] ?? [];
 
-        if (true === $audit['enabled'] ?? false) {
+        if (true === ($audit['enabled'] ?? false)) {
             $this->validate($audit);
 
             $erc = [Response::HTTP_NOT_FOUND];
@@ -58,17 +61,30 @@ class AuditBundle extends AbstractBundle implements AuditType
             foreach ((new Functions())->makeOneDimension(['whitedigital' => $config], onlyLast: true) as $key => $value) {
                 $builder->setParameter($key, $value);
             }
-
             $builder->setParameter('whitedigital.audit.excluded.response_codes', $erc);
-            $types = array_map('strtoupper', array_merge($audit['additional_audit_types'] ?? [], array_values(self::getConstants(AuditType::class))));
-            $types = array_unique($types);
+
+            $configuredTypes = [];
+            foreach ($audit['additional_audit_types'] ?? [] as $item) {
+                foreach ($item as $key => $value) {
+                    if (is_numeric($key)) {
+                        $configuredTypes[strtoupper($value)] = $value;
+                    } else {
+                        $configuredTypes[strtoupper($key)] = $value;
+                    }
+                }
+            }
+
+            $default = array_merge($configuredTypes, self::getConstants(AuditType::class));
+            asort($default);
+            $types = array_unique(array_values($default));
             sort($types);
             $builder->setParameter('whitedigital.audit.additional_audit_types', $types);
 
             $constants = [];
-            foreach ($types as $type) {
-                $constants[$type] = $type;
+            foreach ($default as $type => $value) {
+                $constants[strtoupper($type)] = $value ?: $type;
             }
+            ksort($constants);
             $builder->setParameter('whitedigital.audit.additional_audit_constants', $constants);
 
             if (!$builder->hasParameter($key1 = 'whitedigital.audit.excluded.paths')) {
@@ -79,7 +95,7 @@ class AuditBundle extends AbstractBundle implements AuditType
                 $builder->setParameter($key2, []);
             }
 
-            if (true === $audit['custom_configuration'] ?? false) {
+            if (true === ($audit['custom_configuration'] ?? false)) {
                 $container->import('../config/void_audit.php');
             } else {
                 $container->import('../config/audit_service.php');
@@ -93,7 +109,7 @@ class AuditBundle extends AbstractBundle implements AuditType
 
     public function prependExtension(ContainerConfigurator $container, ContainerBuilder $builder): void
     {
-        $audit = array_merge_recursive(...$builder->getExtensionConfig('whitedigital') ?? [])['audit'] ?? [];
+        $audit = array_merge_recursive(...($builder->getExtensionConfig('whitedigital') ?? []))['audit'] ?? [];
 
         if (true === ($audit['enabled'] ?? false)) {
             if (true === ($audit['set_doctrine_mappings'] ?? true)) {
@@ -123,7 +139,13 @@ class AuditBundle extends AbstractBundle implements AuditType
                     ->scalarNode('audit_entity_manager')->defaultNull()->end()
                     ->scalarNode('default_entity_manager')->defaultNull()->end()
                     ->arrayNode('additional_audit_types')
-                        ->scalarPrototype()->end()
+                        ->arrayPrototype()
+                            ->scalarPrototype()->end()
+                            ->beforeNormalization()
+                                ->ifString()
+                                ->then(static fn ($v) => [$v])
+                            ->end()
+                        ->end()
                     ->end()
                     ->booleanNode('set_doctrine_mappings')->defaultTrue()->end()
                     ->booleanNode('custom_configuration')->defaultFalse()->end()
