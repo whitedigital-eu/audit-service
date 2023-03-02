@@ -48,7 +48,9 @@ use WhiteDigital\EntityResourceMapper\Resource\BaseResource;
 class AuditResource extends BaseResource
 {
     use ARTraits\CreatedUpdated;
-    use ARTraits\Groups;
+
+    public const ITEM = self::PREFIX . 'item';
+    public const READ = self::PREFIX . 'read';
 
     public const PREFIX = 'audit:';
 
