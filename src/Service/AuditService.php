@@ -26,7 +26,6 @@ use function mb_strimwidth;
 use function method_exists;
 use function rtrim;
 use function sort;
-use function sprintf;
 
 class AuditService implements AuditServiceInterface
 {
@@ -94,15 +93,20 @@ class AuditService implements AuditServiceInterface
     {
         $this->validateType($type);
 
+        $location = '';
+        if (null !== ($data['url'] ?? null)) {
+            $location = ' ' . $data['url'];
+        }
+
         if (!in_array(AuditEntityInterface::class, class_implements($class), true)) {
-            throw new InvalidArgumentException($this->translator->trans('missing_implementation', ['default' => Audit::class, 'current' => $class, 'interface' => AuditEntityInterface::class], domain: 'Audit'));
+            throw new InvalidArgumentException($this->translator->trans('missing_implementation', ['%default%' => Audit::class, '%current%' => $class, '%interface%' => AuditEntityInterface::class], domain: 'Audit'));
         }
 
         /** @var AuditEntityInterface $audit */
         $audit = (new $class())
             ->setUserIdentifier($this->security->getUser()?->getUserIdentifier())
             ->setIpAddress($this->requestStack->getMainRequest()?->getClientIp())
-            ->setCategory($this->translator->trans(sprintf('audit.%s', $type)))
+            ->setCategory($this->translator->trans($type, domain: 'Audit') . $location)
             ->setMessage($message)
             ->setData($data);
 
@@ -119,7 +123,7 @@ class AuditService implements AuditServiceInterface
         }
 
         if (!in_array($type, $allowedTypes, true)) {
-            throw new InvalidArgumentException($this->translator->trans('invalid_parameter_list_allowed', ['parameter' => $type, 'allowed' => rtrim(implode(', ', $allowedTypes), ', ')], domain: 'Audit'));
+            throw new InvalidArgumentException($this->translator->trans('invalid_parameter_list_allowed', ['%parameter%' => $type, '%allowed%' => rtrim(implode(', ', $allowedTypes), ', ')], domain: 'Audit'));
         }
     }
 }

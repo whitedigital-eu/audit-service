@@ -19,7 +19,6 @@ use WhiteDigital\Audit\Contracts\AuditType;
 use function array_map;
 use function array_merge;
 use function array_merge_recursive;
-use function array_unique;
 use function array_values;
 use function sort;
 
@@ -47,7 +46,7 @@ class AuditBundle extends AbstractBundle implements AuditType
     {
         $audit = $config['audit'] ?? [];
 
-        if (true === $audit['enabled'] ?? false) {
+        if (true === ($audit['enabled'] ?? false)) {
             $this->validate($audit);
 
             $erc = [Response::HTTP_NOT_FOUND];
@@ -58,18 +57,11 @@ class AuditBundle extends AbstractBundle implements AuditType
             foreach ((new Functions())->makeOneDimension(['whitedigital' => $config], onlyLast: true) as $key => $value) {
                 $builder->setParameter($key, $value);
             }
-
             $builder->setParameter('whitedigital.audit.excluded.response_codes', $erc);
+
             $types = array_map('strtoupper', array_merge($audit['additional_audit_types'] ?? [], array_values(self::getConstants(AuditType::class))));
-            $types = array_unique($types);
             sort($types);
             $builder->setParameter('whitedigital.audit.additional_audit_types', $types);
-
-            $constants = [];
-            foreach ($types as $type) {
-                $constants[$type] = $type;
-            }
-            $builder->setParameter('whitedigital.audit.additional_audit_constants', $constants);
 
             if (!$builder->hasParameter($key1 = 'whitedigital.audit.excluded.paths')) {
                 $builder->setParameter($key1, []);
@@ -79,7 +71,7 @@ class AuditBundle extends AbstractBundle implements AuditType
                 $builder->setParameter($key2, []);
             }
 
-            if (true === $audit['custom_configuration'] ?? false) {
+            if (true === ($audit['custom_configuration'] ?? false)) {
                 $container->import('../config/void_audit.php');
             } else {
                 $container->import('../config/audit_service.php');
@@ -93,7 +85,7 @@ class AuditBundle extends AbstractBundle implements AuditType
 
     public function prependExtension(ContainerConfigurator $container, ContainerBuilder $builder): void
     {
-        $audit = array_merge_recursive(...$builder->getExtensionConfig('whitedigital') ?? [])['audit'] ?? [];
+        $audit = array_merge_recursive(...($builder->getExtensionConfig('whitedigital') ?? []))['audit'] ?? [];
 
         if (true === ($audit['enabled'] ?? false)) {
             if (true === ($audit['set_doctrine_mappings'] ?? true)) {

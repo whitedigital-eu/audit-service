@@ -1,0 +1,7 @@
+missing_implementation: 'Lai izmantotu "%current%" "%default%" vietā, "%current%" nepieciešams implementēt %interface%"'
+invalid_parameter_list_allowed: 'Nekorekts tips: %parameter%. Atļautie tipi: %allowed%'
+EXCEPTION: 'Kļūda'
+DATABASE: 'Datubāze'
+ETL: 'ETL transformācija'
+AUTHENTICATION: 'Autentifikācija'
+EXTERNAL: 'Ārējs izsaukums'
