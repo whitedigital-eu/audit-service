@@ -1,0 +1,7 @@
+missing_implementation: 'To use other entity than "%default%" in audit, "%current%" must implement "%interface%"'
+invalid_parameter_list_allowed: 'Invalid type: %parameter%. Allowed types: %allowed%'
+EXCEPTION: 'Exception'
+DATABASE: 'Database'
+ETL: 'ETL Pipeline'
+AUTHENTICATION: 'Authentication'
+EXTERNAL: 'External call'

@@ -166,8 +166,8 @@ whitedigital:
     audit:
         enabled: true
         additional_audit_types:
-            - { www: name }
-            - test
+            - test1
+            - test2
 ```
 ```php
 use Symfony\Config\WhitedigitalConfig;
@@ -177,8 +177,8 @@ return static function (WhitedigitalConfig $config): void {
         ->audit()
             ->enabled(true)
             ->additionalAuditTypes([
-                ['test' => 'name', ],
-                ['www'],
+                'test1',
+                'test2',
             ]);
 };
 ```

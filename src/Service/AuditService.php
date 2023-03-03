@@ -99,7 +99,7 @@ class AuditService implements AuditServiceInterface
         }
 
         if (!in_array(AuditEntityInterface::class, class_implements($class), true)) {
-            throw new InvalidArgumentException($this->translator->trans('missing_implementation', ['default' => Audit::class, 'current' => $class, 'interface' => AuditEntityInterface::class], domain: 'Audit'));
+            throw new InvalidArgumentException($this->translator->trans('missing_implementation', ['%default%' => Audit::class, '%current%' => $class, '%interface%' => AuditEntityInterface::class], domain: 'Audit'));
         }
 
         /** @var AuditEntityInterface $audit */
@@ -123,7 +123,7 @@ class AuditService implements AuditServiceInterface
         }
 
         if (!in_array($type, $allowedTypes, true)) {
-            throw new InvalidArgumentException($this->translator->trans('invalid_parameter_list_allowed', ['parameter' => $type, 'allowed' => rtrim(implode(', ', $allowedTypes), ', ')], domain: 'Audit'));
+            throw new InvalidArgumentException($this->translator->trans('invalid_parameter_list_allowed', ['%parameter%' => $type, '%allowed%' => rtrim(implode(', ', $allowedTypes), ', ')], domain: 'Audit'));
         }
     }
 }

@@ -6,7 +6,7 @@ interface AuditType
 {
     public const AUTH = 'AUTHENTICATION';
     public const DB = 'DATABASE';
-    public const ETL = 'ETL_PIPELINE';
+    public const ETL = 'ETL';
     public const EXCEPTION = 'EXCEPTION';
-    public const EXTERNAL = 'EXTERNAL_CALL';
+    public const EXTERNAL = 'EXTERNAL';
 }
