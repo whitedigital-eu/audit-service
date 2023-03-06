@@ -5,11 +5,10 @@ namespace WhiteDigital\Audit\Entity;
 use Doctrine\ORM\Mapping as ORM;
 use WhiteDigital\Audit\ApiResource\AuditResource;
 use WhiteDigital\Audit\Contracts\AuditEntityInterface;
-use WhiteDigital\Audit\Repository\AuditRepository;
 use WhiteDigital\EntityResourceMapper\Attribute\Mapping;
 use WhiteDigital\EntityResourceMapper\Entity\BaseEntity;
 
-#[ORM\Entity(repositoryClass: AuditRepository::class)]
+#[ORM\Entity]
 #[ORM\MappedSuperclass]
 #[ORM\Index(fields: ['category'])]
 #[ORM\Index(fields: ['message'])]

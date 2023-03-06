@@ -11,10 +11,10 @@ use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Bundle\AbstractBundle;
-use WhiteDigital\ApiResource\DependencyInjections\Traits\DefineApiPlatformMappings;
-use WhiteDigital\ApiResource\DependencyInjections\Traits\DefineOrmMappings;
-use WhiteDigital\ApiResource\Functions;
+use WhiteDigital\EntityResourceMapper\DependencyInjection\Traits\DefineApiPlatformMappings;
+use WhiteDigital\EntityResourceMapper\DependencyInjection\Traits\DefineOrmMappings;
 use WhiteDigital\Audit\Contracts\AuditType;
+use WhiteDigital\EntityResourceMapper\EntityResourceMapperBundle;
 
 use function array_map;
 use function array_merge;
@@ -54,7 +54,7 @@ class AuditBundle extends AbstractBundle implements AuditType
                 $erc = $audit['excluded']['response_codes'];
             }
 
-            foreach ((new Functions())->makeOneDimension(['whitedigital' => $config], onlyLast: true) as $key => $value) {
+            foreach (EntityResourceMapperBundle::makeOneDimension(['whitedigital' => $config], onlyLast: true) as $key => $value) {
                 $builder->setParameter($key, $value);
             }
             $builder->setParameter('whitedigital.audit.excluded.response_codes', $erc);
