@@ -27,21 +27,17 @@ for overriding part of package, scroll down to appropriate section.
 By default after installation, audit service bundle is disabled. To enable it, you need to add
 following (or similar configuration):  
 ```yaml
-whitedigital:
-    audit:
-        enable: true
-        audit_entity_manager: audit
-        default_entity_manager: default
+audit:
+    audit_entity_manager: audit
+    default_entity_manager: default
 ```
 ```php
-use Symfony\Config\WhitedigitalConfig;
+use Symfony\Config\AuditConfig;
 
-return static function (WhitedigitalConfig $config): void {
+return static function (AuditConfig $config): void {
     $config
-        ->audit()
-            ->enabled(true)
-            ->auditEntityManager('audit')
-            ->defaultEntityManager('default');
+        ->auditEntityManager('audit')
+        ->defaultEntityManager('default');
 };
 ```
 > `audit_entity_manager` is entity manager used for audit  
@@ -82,74 +78,62 @@ Audit service comes with 2 event subscribers: one for exceptions and one for dat
 **Exception subscriber**:  
 By default exception subscriber audits all exceptions, except 404 response code. you can override this logic by:
 ```yaml
-whitedigital:
-    audit:
-        enabled: true
-        excluded:
-            response_codes:
-                - 404
-                - 405
+audit:
+    excluded:
+        response_codes:
+            - 404
+            - 405
 ```
 ```php
-use Symfony\Config\WhitedigitalConfig;
+use Symfony\Config\AuditConfig;
 use Symfony\Component\HttpFoundation\Response;
 
-return static function (WhitedigitalConfig $config): void {
+return static function (AuditConfig $config): void {
     $config
-        ->audit()
-            ->enabled(true)
-            ->excluded()
-                ->responseCodes([
-                    Response::HTTP_NOT_FOUND,
-                    Response::HTTP_METHOD_NOT_ALLOWED,
-                ]);
+        ->excluded()
+            ->responseCodes([
+                Response::HTTP_NOT_FOUND,
+                Response::HTTP_METHOD_NOT_ALLOWED,
+            ]);
 };
 ```
 By default exception subscriber audits all exceptions on all routes and paths. you can override this logic by:
 Path:
 ```yaml
-whitedigital:
-    audit:
-        enabled: true
-        excluded:
-            paths:
-                - '/test'
+audit:
+    excluded:
+        paths:
+            - '/test'
 ```
 ```php
-use Symfony\Config\WhitedigitalConfig;
+use Symfony\Config\AuditConfig;
 use Symfony\Component\HttpFoundation\Response;
 
-return static function (WhitedigitalConfig $config): void {
+return static function (AuditConfig $config): void {
     $config
-        ->audit()
-            ->enabled(true)
-            ->excluded()
-                ->paths([
-                    '/test',
-                ]);
+        ->excluded()
+            ->paths([
+                '/test',
+            ]);
 };
 ```
 Route:
 ```yaml
-whitedigital:
-    audit:
-        enabled: true
-        excluded:
-            routes:
-                - 'app_test'
+audit:
+    excluded:
+        routes:
+            - 'app_test'
 ```
 ```php
-use Symfony\Config\WhitedigitalConfig;
+use Symfony\Config\AuditConfig;
 use Symfony\Component\HttpFoundation\Response;
 
-return static function (WhitedigitalConfig $config): void {
+return static function (AuditConfig $config): void {
     $config
-        ->audit()
-            ->enabled(true)
-            ->excluded()
-                ->routes([
-                    'app_test',
-                ]);
+        ->excluded()
+            ->routes([
+                'app_test',
+            ]);
 };
 ```
 ---
@@ -162,24 +146,20 @@ To not to create chaos within audit records, it is only allowed to use specified
 
 If you wish to add more types, configure new types as so:
 ```yaml
-whitedigital:
-    audit:
-        enabled: true
-        additional_audit_types:
-            - test1
-            - test2
+audit:
+    additional_audit_types:
+        - test1
+        - test2
 ```
 ```php
-use Symfony\Config\WhitedigitalConfig;
+use Symfony\Config\AuditConfig;
 
-return static function (WhitedigitalConfig $config): void {
+return static function (AuditConfig $config): void {
     $config
-        ->audit()
-            ->enabled(true)
-            ->additionalAuditTypes([
-                'test1',
-                'test2',
-            ]);
+        ->additionalAuditTypes([
+            'test1',
+            'test2',
+        ]);
 };
 ```
 It is possible to run symfony command that generates interface based on default and added types for easier code
@@ -190,21 +170,17 @@ bin/console make:audit-types
 This command will generate new file based on package configuration. By default, this command will make 
 `App\Audit\AuditType` class. You can override this name in configuration:  
 ```yaml
-whitedigital:
-    audit:
-        enabled: true
-        audit_type_interface_namespace: 'App\Audit'
-        audit_type_interface_class_name: 'AuditType'
+audit:
+    audit_type_interface_namespace: 'App\Audit'
+    audit_type_interface_class_name: 'AuditType'
 ```
 ```php
-use Symfony\Config\WhitedigitalConfig;
+use Symfony\Config\AuditConfig;
 
-return static function (WhitedigitalConfig $config): void {
+return static function (AuditConfig $config): void {
     $config
-        ->audit()
-            ->enabled(true)
-            ->auditTypeInterfaceNamespace('App\Audit')
-            ->auditTypeInterfaceClassName('AuditType');
+        ->auditTypeInterfaceNamespace('App\Audit')
+        ->auditTypeInterfaceClassName('AuditType');
 };
 ```
 > If you have this defined interface and want to add more allowed types, you can just add new types to it without
@@ -215,19 +191,15 @@ return static function (WhitedigitalConfig $config): void {
 If used within api platform, you may want to get audits as an api resource. To do that, you can enable that in 
 configuration:
 ```yaml
-whitedigital:
-    audit:
-        enabled: true
-        enable_audit_resource: true
+audit:
+    enable_audit_resource: true
 ```
 ```php
-use Symfony\Config\WhitedigitalConfig;
+use Symfony\Config\AuditConfig;
 
-return static function (WhitedigitalConfig $config): void {
+return static function (AuditConfig $config): void {
     $config
-        ->audit()
-            ->enabled(true)
-            ->enableAuditResource(true);
+        ->enableAuditResource(true);
 };
 ```
 Now you should see `Audit` resource in api (and in documentation). Default iri for this resource 
@@ -256,19 +228,15 @@ $services
 If your custom AuditService does not use database as an audit storage, you need to disable part
 of this package that requires 2 entity managers. You can do it like this:
 ```yaml
-whitedigital:
-    audit:
-        enable: true
-        custom_configuration: true
+audit:
+    custom_configuration: true
 ```
 ```php
-use Symfony\Config\WhitedigitalConfig;
+use Symfony\Config\AuditConfig;
 
-return static function (WhitedigitalConfig $config): void {
+return static function (AuditConfig $config): void {
     $config
-        ->audit()
-            ->enabled(true)
-            ->customConfiguration(true);
+        ->customConfiguration(true);
 };
 ```
 Using `customConfiguration` option, disables `AuditService` provided by this package. Not to brake 
@@ -328,19 +296,15 @@ This bundle automatically adds `WhiteDigital\Audit\Entity` namespace to both giv
 If you wish to not it to do it, for example, if you don't use default entity or maybe don't store 
 audits in database at all, you need to configure this to disable it:
 ```yaml
-whitedigital:
-    audit:
-        enable: true
-        set_doctrine_mappings: false
+audit:
+    set_doctrine_mappings: false
 ```
 ```php
-use Symfony\Config\WhitedigitalConfig;
+use Symfony\Config\AuditConfig;
 
-return static function (WhitedigitalConfig $config): void {
+return static function (AuditConfig $config): void {
     $config
-        ->audit()
-            ->enabled(true)
-            ->setDoctrineMappings(false);
+        ->setDoctrineMappings(false);
 };
 ```
 ---
@@ -354,49 +318,4 @@ public function __construct(private AuditDoctrineEventSubscriber $subscriber){}
 $this->subscriber->setIsEnabled(false);
 someFunction();
 $this->subscriber->setIsEnabled(true);
-```
----
-**Overriding api resource options**
-> **WARNING**: This overrides only configuration defined in `#ApiResource` attribute!  
-
-If you want to override any option defined within `ApiResource` attribute on api resource defined in 
-`WhiteDigital\Audit\ApiResource\Audit` you can do it with using `ExtendedApiResource` attribute.  
-For example, to override `routePrefix` to get iri of `/api/audits` instead of default `/api/wd/as/audits` do:
-1. Create new class that extends resource you want to override
-2. Add `ExtendedApiResouce` attribute insted of `ApiResource` attribute
-3. Pass only those options that you want to override, others will be taken from resource you are extending
-```php
-<?php declare(strict_types = 1);
-
-namespace App\ApiResource;
-
-use WhiteDigital\ApiResource\Attribute\ExtendedApiResource;
-use WhiteDigital\Audit\ApiResource\AuditResource as WDAuditResource;
-
-#[ExtendedApiResource(routePrefix: '')]
-class AuditResource extends WDAuditResource
-{
-}
-```
-`ExtendedApiResouce` attribute checks which resource you are extending and overrides options given in extension, 
-keeping other options same as in parent resource. 
-
-> **IMPORTANT**: You need to disable bundled resource in configuration, otherwise you will have 2 instances of audit
-> resource: one with `/api/audits` iri and one with `/api/wd/as/audits` iri.
-
-```yaml
-whitedigital:
-    audit:
-        enabled: true
-        enable_audit_resource: false
-```
-```php
-use Symfony\Config\WhitedigitalConfig;
-
-return static function (WhitedigitalConfig $config): void {
-    $config
-        ->audit()
-            ->enabled(true)
-            ->enableAuditResource(false);
-};
 ```

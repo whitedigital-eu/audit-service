@@ -5,8 +5,8 @@ namespace WhiteDigital\Audit\DataProvider;
 use ApiPlatform\Exception\ResourceClassNotFoundException;
 use ReflectionException;
 use Symfony\Component\Serializer\Exception\ExceptionInterface;
-use WhiteDigital\EntityResourceMapper\DataProvider\AbstractDataProvider;
 use WhiteDigital\Audit\ApiResource\AuditResource;
+use WhiteDigital\EntityResourceMapper\DataProvider\AbstractDataProvider;
 use WhiteDigital\EntityResourceMapper\Entity\BaseEntity;
 
 final class AuditDataProvider extends AbstractDataProvider
