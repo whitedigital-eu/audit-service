@@ -349,3 +349,7 @@ $this->subscriber->setIsEnabled(false);
 someFunction();
 $this->subscriber->setIsEnabled(true);
 ```
+---
+### PHP CS Fixer
+> **IMPORTANT**: When running php-cs-fixer, make sure not to format files in `skeleton` folder. Otherwise maker
+> command will stop working.
