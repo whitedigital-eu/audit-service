@@ -18,23 +18,26 @@
         "doctrine/doctrine-bundle": "*",
         "doctrine/orm": "*",
         "doctrine/persistence": "*",
-        "symfony/config": ">=6.2",
-        "symfony/console": ">=6.2",
-        "symfony/dependency-injection": ">=6.2",
-        "symfony/event-dispatcher": ">=6.2",
-        "symfony/http-foundation": ">=6.2",
-        "symfony/http-kernel": ">=6.2",
+        "symfony/config": "^6.2",
+        "symfony/console": "^6.2",
+        "symfony/dependency-injection": "^6.2",
+        "symfony/event-dispatcher": "^6.2",
+        "symfony/http-foundation": "^6.2",
+        "symfony/http-kernel": "^6.2",
         "symfony/maker-bundle": "^1.40",
-        "symfony/security-bundle": ">=6.2",
-        "symfony/serializer": ">=6.2",
-        "symfony/translation": ">=6.2",
-        "symfony/validator": ">=6.2",
-        "whitedigital-eu/entity-resource-mapper-bundle": ">=0.23.3"
+        "symfony/security-bundle": "^6.2",
+        "symfony/serializer": "^6.2",
+        "symfony/translation": "^6.2",
+        "symfony/validator": "^6.2",
+        "whitedigital-eu/entity-resource-mapper-bundle": "^0.23"
     },
     "require-dev": {
         "friendsofphp/php-cs-fixer": "*",
         "roave/security-advisories": "dev-latest",
         "whitedigital-eu/config-pack": "^2.1"
+    },
+    "conflict": {
+        "whitedigital-eu/entity-resource-mapper-bundle": "<0.23.3"
     },
     "autoload": {
         "psr-4": {
