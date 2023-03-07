@@ -20,11 +20,8 @@ class AuditApiTest extends ApiTestCase
     protected HttpClientInterface $client;
     protected ContainerInterface $container;
 
-    protected string $iri = '/api/wd/as/audits';
+    protected string $iri = '/api/audits';
 
-    /**
-     * @throws TransportExceptionInterface
-     */
     protected function setUp(): void
     {
         $this->client = static::createClient();
