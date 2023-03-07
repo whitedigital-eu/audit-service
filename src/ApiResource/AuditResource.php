@@ -40,7 +40,7 @@ use WhiteDigital\EntityResourceMapper\Resource\BaseResource;
     ApiFilter(GroupFilter::class, arguments: ['parameterName' => 'groups', 'overrideDefaultGroups' => false, ]),
     ApiFilter(ResourceDateFilter::class, properties: ['createdAt', 'updatedAt', ]),
     ApiFilter(ResourceJsonFilter::class, properties: ['data', ]),
-    ApiFilter(ResourceOrderFilter::class, properties: ['category', 'message', 'ipAddress', 'userEmail', 'createdAt', 'updatedAt', ]),
+    ApiFilter(ResourceOrderFilter::class, properties: ['category', 'message', 'ipAddress', 'userIdentifier', 'createdAt', 'updatedAt', ]),
     ApiFilter(ResourceSearchFilter::class, properties: ['category', 'message', 'ipAddress', 'userIdentifier', ]),
 ]
 #[Mapping(Audit::class)]
