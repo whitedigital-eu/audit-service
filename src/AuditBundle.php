@@ -12,6 +12,7 @@ use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigura
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Bundle\AbstractBundle;
 use WhiteDigital\Audit\Contracts\AuditType;
+use WhiteDigital\Audit\DependencyInjection\CompilerPass\AuditServiceCompilerPass;
 use WhiteDigital\EntityResourceMapper\DependencyInjection\Traits\DefineApiPlatformMappings;
 use WhiteDigital\EntityResourceMapper\DependencyInjection\Traits\DefineOrmMappings;
 use WhiteDigital\EntityResourceMapper\EntityResourceMapperBundle;
@@ -125,6 +126,11 @@ class AuditBundle extends AbstractBundle implements AuditType
         } catch (ReflectionException) {
             return [];
         }
+    }
+
+    public function build(ContainerBuilder $container): void
+    {
+        $container->addCompilerPass(new AuditServiceCompilerPass());
     }
 
     private function validate(array $config): void

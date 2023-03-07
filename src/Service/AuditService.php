@@ -114,6 +114,11 @@ class AuditService implements AuditServiceInterface
         $this->entityManager->flush();
     }
 
+    public static function getDefaultPriority(): int
+    {
+        return 1;
+    }
+
     private function validateType(string $type): void
     {
         $allowedTypes = $this->auditTypes;

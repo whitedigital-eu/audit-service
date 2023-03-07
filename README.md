@@ -1,5 +1,46 @@
 # Audit Service
 
+> **IMPORTANT**: When migrating from `0.4` (or earlier) to `0.5`, configuration and usage has changed slightly:  
+> 1. When used outside of this package, `AuditService` can now be accessed as 
+> `WhiteDigital\Audit\Contracts\AuditServiceInterface` instead of `WhiteDigital\Audit\Service\AuditServiceLocator`
+> 2. Configuration has changed and now it is one level higher:  
+> **Old version**:
+> ```yaml
+> whitedigital:
+>     audit:
+>         enable: true
+>         audit_entity_manager: audit
+>         default_entity_manager: default
+> ```
+> ```php
+> use Symfony\Config\WhitedigitalConfig;
+> 
+> return static function (WhitedigitalConfig $config): void {
+>     $config
+>         ->audit()
+>             ->enabled(true)
+>             ->auditEntityManager('audit')
+>             ->defaultEntityManager('default');
+> };
+>```
+> **New version**:  
+> ```yaml
+> audit:
+>     audit_entity_manager: audit
+>     default_entity_manager: default
+> ```
+> ```php
+> use Symfony\Config\AuditConfig;
+> 
+> return static function (AuditConfig $config): void {
+>     $config
+>         ->auditEntityManager('audit')
+>         ->defaultEntityManager('default');
+> };
+>```
+> As this bundle now comes enabled, `enabled` parameter has been removed
+
+
 ### What is it?
 Audit is service needed to audit (log) events into database. For
 now package only ships with doctrine implementation to save data,
@@ -22,10 +63,7 @@ composer require whitedigital-eu/audit-service
 ---
 ### Configuration
 **Configuration differs between default setup and overridden one.** If you are interested in configuration 
-for overriding part of package, scroll down to appropriate section.  
-
-By default after installation, audit service bundle is disabled. To enable it, you need to add
-following (or similar configuration):  
+for overriding part of package, scroll down to appropriate section.
 ```yaml
 audit:
     audit_entity_manager: audit
@@ -57,12 +95,12 @@ If by schema update:
 ```shell
 bin/console doctrine:schema:update --force
 ```
-This is it, now you can use audit. It is configured and autowired as `AuditServiceLocator`.
+This is it, now you can use audit. It is configured and autowired as `AuditServiceInterface`.
 ```php
 use WhiteDigital\Audit\Contracts\AuditType;
-use WhiteDigital\Audit\Service\AuditServiceLocator;
+use WhiteDigital\Audit\Contracts\AuditServiceInterface;
 
-public function __construct(private AuditServiceLocator $audit){}
+public function __construct(private AuditServiceInterface $audit){}
 
 $this->audit->audit(AuditType::EXCEPTION, 'something happened');
 
@@ -188,40 +226,32 @@ return static function (AuditConfig $config): void {
 
 ---
 ### Api Resource
-If used within api platform, you may want to get audits as an api resource. To do that, you can enable that in 
-configuration:
-```yaml
-audit:
-    enable_audit_resource: true
-```
-```php
-use Symfony\Config\AuditConfig;
-
-return static function (AuditConfig $config): void {
-    $config
-        ->enableAuditResource(true);
-};
-```
-Now you should see `Audit` resource in api (and in documentation). Default iri for this resource 
-is `/api/wd/as/audits`. If you want to use different iri, you can read how to do it below in override section.
+This package comes with AuditResource for api-platform, it's iri is `/api/audits`.
 
 ---
 ### Overriding parts of bundle
 
 **Overriding audit service**  
 If you wish not to use audit service this package comes with, you can override it with your own.  
-To do so, implement `AuditServiceInterface` into your service and configure to use your service:
+To do so, implement `AuditServiceInterface` into your service:
+
 ```php
-//config/services.php
-use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
-use YourAuditService;
+use WhiteDigital\Audit\Contracts\AuditServiceInterface;
 
-$services = $containerConfigurator->services();
+class YourAuditService implements AuditServiceInterface {
+    public function audit(string $type, string $message, array $data = [], string $class = ''): void
+    {
+    }
 
-$services
-    ->set('app.audit.service')
-    ->class(YourAuditService::class)
-    ->tag('whitedigital.audit', ['priority' => 2]);
+    public function auditException(Throwable $exception, ?string $url = null, string $class = ''): void
+    {
+    }
+    
+    public static function getDefaultPriority(): int
+    {
+        return 2;
+    }
+}
 ```
 > AuditService in this package comes with priority of 1. To override it, make sure to add priority higher than that.  
 
@@ -274,11 +304,11 @@ Now when you use `audit()` or `auditException()` functions in your project, you 
 use your entity:
 ```php
 use WhiteDigital\Audit\Contracts\AuditType;
-use WhiteDigital\Audit\Service\AuditServiceLocator;
+use WhiteDigital\Audit\Contracts\AuditServiceInterface;
 
 use App\Entity\AuditEntity; // example
 
-public function __construct(private AuditServiceLocator $audit){}
+public function __construct(private AuditServiceInterface $audit){}
 
 $this->audit->audit(AuditType::EXTERNAL, 'something happened', [], AuditEntity::class);
 
