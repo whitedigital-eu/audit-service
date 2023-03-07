@@ -23,7 +23,7 @@ use function array_merge_recursive;
 use function array_values;
 use function sort;
 
-class AuditBundle extends AbstractBundle implements AuditType
+class AuditBundle extends AbstractBundle
 {
     use DefineApiPlatformMappings;
     use DefineOrmMappings;
