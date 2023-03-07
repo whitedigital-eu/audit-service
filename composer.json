@@ -29,7 +29,7 @@
         "symfony/serializer": ">=6.2",
         "symfony/translation": ">=6.2",
         "symfony/validator": ">=6.2",
-        "whitedigital-eu/entity-resource-mapper-bundle": ">=0.23.1"
+        "whitedigital-eu/entity-resource-mapper-bundle": ">=0.23.3"
     },
     "require-dev": {
         "friendsofphp/php-cs-fixer": "*",
