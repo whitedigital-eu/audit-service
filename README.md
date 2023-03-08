@@ -2,7 +2,8 @@
 
 > **IMPORTANT**: When migrating from `0.4` (or earlier) to `0.5`, configuration and usage has changed slightly:  
 > 1. When used outside of this package, `AuditService` can now be accessed as 
-> `WhiteDigital\Audit\Contracts\AuditServiceInterface` instead of `WhiteDigital\Audit\Service\AuditServiceLocator`
+> `WhiteDigital\Audit\Contracts\AuditServiceInterface` instead of `WhiteDigital\Audit\Service\AuditServiceLocator`. `AuditServiceLocator`
+> class has been removed.  
 > 2. Configuration has changed and now it is one level higher:  
 > **Old version**:
 > ```yaml
@@ -29,6 +30,7 @@
 >     audit_entity_manager: audit
 >     default_entity_manager: default
 > ```
+> If used in php config, it is now `AuditConfig` instead of `WhitedigitalConfig`  
 > ```php
 > use Symfony\Config\AuditConfig;
 > 
@@ -269,9 +271,6 @@ return static function (AuditConfig $config): void {
         ->customConfiguration(true);
 };
 ```
-Using `customConfiguration` option, disables `AuditService` provided by this package. Not to brake 
-application this way, dummy service is provided while you don't override it.
-
 ---
 **Overriding default entity**  
 By default, Audit entity is based on `BaseEntity` that comes from `whitedigital-eu/entity-resource-mapper-bundle`.  

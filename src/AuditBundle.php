@@ -83,9 +83,7 @@ class AuditBundle extends AbstractBundle
             $this->addDoctrineConfig($container, $audit['default_entity_manager'], $mappings, 'Audit', self::MAPPINGS);
         }
 
-        if (false === ($audit['custom_configuration'] ?? false)) {
-            $this->addApiPlatformPaths($container, self::PATHS);
-        }
+        $this->addApiPlatformPaths($container, self::PATHS);
     }
 
     public function configure(DefinitionConfigurator $definition): void
