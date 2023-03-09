@@ -79,8 +79,8 @@ class AuditBundle extends AbstractBundle
 
             $mappings = $this->getOrmMappings($builder, $audit['default_entity_manager']);
 
-            $this->addDoctrineConfig($container, $audit['audit_entity_manager'], $mappings, 'Audit', self::MAPPINGS, true);
-            $this->addDoctrineConfig($container, $audit['default_entity_manager'], $mappings, 'Audit', self::MAPPINGS);
+            $this->addDoctrineConfig($container, $audit['audit_entity_manager'], 'Audit', self::MAPPINGS, $mappings);
+            $this->addDoctrineConfig($container, $audit['default_entity_manager'], 'Audit', self::MAPPINGS);
         }
 
         $this->addApiPlatformPaths($container, self::PATHS);
