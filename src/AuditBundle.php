@@ -11,10 +11,11 @@ use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Bundle\AbstractBundle;
-use WhiteDigital\ApiResource\DependencyInjections\Traits\DefineApiPlatformMappings;
-use WhiteDigital\ApiResource\DependencyInjections\Traits\DefineOrmMappings;
-use WhiteDigital\ApiResource\Functions;
 use WhiteDigital\Audit\Contracts\AuditType;
+use WhiteDigital\Audit\DependencyInjection\CompilerPass\AuditServiceCompilerPass;
+use WhiteDigital\EntityResourceMapper\DependencyInjection\Traits\DefineApiPlatformMappings;
+use WhiteDigital\EntityResourceMapper\DependencyInjection\Traits\DefineOrmMappings;
+use WhiteDigital\EntityResourceMapper\EntityResourceMapperBundle;
 
 use function array_map;
 use function array_merge;
@@ -22,7 +23,7 @@ use function array_merge_recursive;
 use function array_values;
 use function sort;
 
-class AuditBundle extends AbstractBundle implements AuditType
+class AuditBundle extends AbstractBundle
 {
     use DefineApiPlatformMappings;
     use DefineOrmMappings;
@@ -40,102 +41,79 @@ class AuditBundle extends AbstractBundle implements AuditType
         '%kernel.project_dir%/vendor/whitedigital-eu/audit-service/src/ApiResource',
     ];
 
-    protected string $extensionAlias = 'whitedigital';
-
     public function loadExtension(array $config, ContainerConfigurator $container, ContainerBuilder $builder): void
     {
-        $audit = $config['audit'] ?? [];
+        $this->validate($config);
 
-        if (true === ($audit['enabled'] ?? false)) {
-            $this->validate($audit);
-
-            $erc = [Response::HTTP_NOT_FOUND];
-            if (isset($audit['excluded']['response_codes'])) {
-                $erc = $audit['excluded']['response_codes'];
-            }
-
-            foreach ((new Functions())->makeOneDimension(['whitedigital' => $config], onlyLast: true) as $key => $value) {
-                $builder->setParameter($key, $value);
-            }
-            $builder->setParameter('whitedigital.audit.excluded.response_codes', $erc);
-
-            $types = array_map('strtoupper', array_merge($audit['additional_audit_types'] ?? [], array_values(self::getConstants(AuditType::class))));
-            sort($types);
-            $builder->setParameter('whitedigital.audit.additional_audit_types', $types);
-
-            if (!$builder->hasParameter($key1 = 'whitedigital.audit.excluded.paths')) {
-                $builder->setParameter($key1, []);
-            }
-
-            if (!$builder->hasParameter($key2 = 'whitedigital.audit.excluded.routes')) {
-                $builder->setParameter($key2, []);
-            }
-
-            if (true === ($audit['custom_configuration'] ?? false)) {
-                $container->import('../config/void_audit.php');
-            } else {
-                $container->import('../config/audit_service.php');
-            }
-
-            $container->import('../config/services.php');
+        $erc = [Response::HTTP_NOT_FOUND];
+        if (isset($config['excluded']['response_codes'])) {
+            $erc = $config['excluded']['response_codes'];
         }
 
-        $container->import('../config/global.php');
+        foreach (EntityResourceMapperBundle::makeOneDimension(['whitedigital.audit' => $config], onlyLast: true) as $key => $value) {
+            $builder->setParameter($key, $value);
+        }
+        $builder->setParameter('whitedigital.audit.excluded.response_codes', $erc);
+
+        $types = array_map('strtoupper', array_merge($audit['additional_audit_types'] ?? [], array_values(self::getConstants(AuditType::class))));
+        sort($types);
+        $builder->setParameter('whitedigital.audit.additional_audit_types', $types);
+
+        if (!$builder->hasParameter($paths = 'whitedigital.audit.excluded.paths')) {
+            $builder->setParameter($paths, []);
+        }
+
+        if (!$builder->hasParameter($routes = 'whitedigital.audit.excluded.routes')) {
+            $builder->setParameter($routes, []);
+        }
+
+        $container->import('../config/services.php');
     }
 
     public function prependExtension(ContainerConfigurator $container, ContainerBuilder $builder): void
     {
-        $audit = array_merge_recursive(...($builder->getExtensionConfig('whitedigital') ?? []))['audit'] ?? [];
+        $audit = array_merge_recursive(...($builder->getExtensionConfig('audit') ?? []));
 
-        if (true === ($audit['enabled'] ?? false)) {
-            if (true === ($audit['set_doctrine_mappings'] ?? true)) {
-                $this->validate($audit);
+        if (true === ($audit['set_doctrine_mappings'] ?? true)) {
+            $this->validate($audit);
 
-                $mappings = $this->getOrmMappings($builder, $audit['default_entity_manager']);
+            $mappings = $this->getOrmMappings($builder, $audit['default_entity_manager']);
 
-                $this->addDoctrineConfig($container, $audit['audit_entity_manager'], $mappings, 'Audit', self::MAPPINGS, true);
-                $this->addDoctrineConfig($container, $audit['default_entity_manager'], $mappings, 'Audit', self::MAPPINGS);
-            }
-
-            if (false === ($audit['custom_configuration'] ?? false)) {
-                $this->addApiPlatformPaths($container, self::PATHS);
-            }
+            $this->addDoctrineConfig($container, $audit['audit_entity_manager'], 'Audit', self::MAPPINGS, $mappings);
+            $this->addDoctrineConfig($container, $audit['default_entity_manager'], 'Audit', self::MAPPINGS);
         }
+
+        $this->addApiPlatformPaths($container, self::PATHS);
     }
 
     public function configure(DefinitionConfigurator $definition): void
     {
         $definition
             ->rootNode()
+            ->addDefaultsIfNotSet()
             ->children()
-                ->arrayNode('audit')
-                ->canBeEnabled()
-                ->addDefaultsIfNotSet()
-                ->children()
-                    ->scalarNode('audit_entity_manager')->defaultNull()->end()
-                    ->scalarNode('default_entity_manager')->defaultNull()->end()
-                    ->arrayNode('additional_audit_types')
-                        ->scalarPrototype()->end()
-                    ->end()
-                    ->booleanNode('set_doctrine_mappings')->defaultTrue()->end()
-                    ->booleanNode('custom_configuration')->defaultFalse()->end()
-                    ->arrayNode('excluded')
-                        ->children()
-                            ->arrayNode('response_codes')
-                                ->scalarPrototype()->end()
-                            ->end()
-                            ->arrayNode('paths')
-                                ->scalarPrototype()->end()
-                            ->end()
-                            ->arrayNode('routes')
-                                ->scalarPrototype()->end()
-                            ->end()
+                ->scalarNode('audit_entity_manager')->defaultNull()->end()
+                ->scalarNode('default_entity_manager')->defaultNull()->end()
+                ->arrayNode('additional_audit_types')
+                    ->scalarPrototype()->end()
+                ->end()
+                ->booleanNode('set_doctrine_mappings')->defaultTrue()->end()
+                ->booleanNode('custom_configuration')->defaultFalse()->end()
+                ->arrayNode('excluded')
+                    ->children()
+                        ->arrayNode('response_codes')
+                            ->scalarPrototype()->end()
+                        ->end()
+                        ->arrayNode('paths')
+                            ->scalarPrototype()->end()
+                        ->end()
+                        ->arrayNode('routes')
+                            ->scalarPrototype()->end()
                         ->end()
                     ->end()
-                    ->booleanNode('enable_audit_resource')->defaultFalse()->end()
-                    ->scalarNode('audit_type_interface_namespace')->defaultValue('App\\Audit')->end()
-                    ->scalarNode('audit_type_interface_class_name')->defaultValue('AuditType')->end()
                 ->end()
+                ->scalarNode('audit_type_interface_namespace')->defaultValue('App\\Audit')->end()
+                ->scalarNode('audit_type_interface_class_name')->defaultValue('AuditType')->end()
             ->end();
     }
 
@@ -146,6 +124,11 @@ class AuditBundle extends AbstractBundle implements AuditType
         } catch (ReflectionException) {
             return [];
         }
+    }
+
+    public function build(ContainerBuilder $container): void
+    {
+        $container->addCompilerPass(new AuditServiceCompilerPass());
     }
 
     private function validate(array $config): void

@@ -8,10 +8,10 @@ use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Serializer\Filter\GroupFilter;
+use DateTimeImmutable;
 use Doctrine\Common\Collections\Criteria;
 use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Validator\Constraints as Assert;
-use WhiteDigital\ApiResource\ApiResource\Traits as ARTraits;
 use WhiteDigital\Audit\DataProvider\AuditDataProvider;
 use WhiteDigital\Audit\Entity\Audit;
 use WhiteDigital\EntityResourceMapper\Attribute\Mapping;
@@ -33,26 +33,23 @@ use WhiteDigital\EntityResourceMapper\Resource\BaseResource;
                 normalizationContext: ['groups' => [self::READ, ], ],
             ),
         ],
-        routePrefix: '/wd/as',
-        normalizationContext: ['groups' => [self::READ, self::ITEM, ], ],
+        normalizationContext: ['groups' => [self::READ, ], ],
         order: ['createdAt' => Criteria::DESC, ],
         provider: AuditDataProvider::class,
     ),
     ApiFilter(GroupFilter::class, arguments: ['parameterName' => 'groups', 'overrideDefaultGroups' => false, ]),
     ApiFilter(ResourceDateFilter::class, properties: ['createdAt', 'updatedAt', ]),
     ApiFilter(ResourceJsonFilter::class, properties: ['data', ]),
-    ApiFilter(ResourceOrderFilter::class, properties: ['category', 'message', 'ipAddress', 'userEmail', 'createdAt', 'updatedAt', ]),
-    ApiFilter(ResourceSearchFilter::class, properties: ['category', 'message', 'ipAddress', 'userEmail', ]),
+    ApiFilter(ResourceOrderFilter::class, properties: ['category', 'message', 'ipAddress', 'userIdentifier', 'createdAt', 'updatedAt', ]),
+    ApiFilter(ResourceSearchFilter::class, properties: ['category', 'message', 'ipAddress', 'userIdentifier', ]),
 ]
 #[Mapping(Audit::class)]
 class AuditResource extends BaseResource
 {
-    use ARTraits\CreatedUpdated;
+    public const PREFIX = 'audit:';
 
     public const ITEM = self::PREFIX . 'item';
     public const READ = self::PREFIX . 'read';
-
-    public const PREFIX = 'audit:';
 
     #[ApiProperty(identifier: true)]
     #[Groups([self::READ, self::ITEM, ])]
@@ -75,4 +72,10 @@ class AuditResource extends BaseResource
     #[Groups([self::ITEM, ])]
     #[Assert\Json]
     public ?array $data = null;
+
+    #[Groups([self::READ, self::ITEM, ])]
+    public ?DateTimeImmutable $createdAt = null;
+
+    #[Groups([self::READ, self::ITEM, ])]
+    public ?DateTimeImmutable $updatedAt = null;
 }
