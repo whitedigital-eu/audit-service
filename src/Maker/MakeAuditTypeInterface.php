@@ -59,7 +59,13 @@ class MakeAuditTypeInterface extends AbstractMaker
         $namespace = str_replace($generator->getRootNamespace() . '\\', '', $namespace);
         $interface = $generator->createClassNameDetails($this->bag->get('whitedigital.audit.audit_type_interface_class_name'), $namespace);
 
-        $constants = $this->bag->get('whitedigital.audit.additional_audit_constants');
+        $types = $this->bag->get('whitedigital.audit.additional_audit_types');
+        $constants = [];
+
+        foreach ($types as $type) {
+            $constants[$type] = $type;
+        }
+
         if (interface_exists($interface->getFullName())) {
             try {
                 $classConstants = ($class = new ReflectionClass(objectOrClass: $interface->getFullName()))->getConstants(filter: ReflectionClassConstant::IS_PUBLIC);

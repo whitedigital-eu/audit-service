@@ -44,17 +44,17 @@ class AuditDoctrineEventSubscriber implements EventSubscriberInterface
 
     public function postPersist(LifecycleEventArgs $args): void
     {
-        $this->logActivity($this->translator->trans('entity.create'), $args);
+        $this->logActivity($this->translator->trans('entity.create', domain: 'Audit'), $args);
     }
 
     public function preRemove(LifecycleEventArgs $args): void
     {
-        $this->logActivity($this->translator->trans('entity.remove'), $args);
+        $this->logActivity($this->translator->trans('entity.remove', domain: 'Audit'), $args);
     }
 
     public function postUpdate(LifecycleEventArgs $args): void
     {
-        $this->logActivity($this->translator->trans('entity.update'), $args);
+        $this->logActivity($this->translator->trans('entity.update', domain: 'Audit'), $args);
     }
 
     private function logActivity(string $action, LifecycleEventArgs $args): void
