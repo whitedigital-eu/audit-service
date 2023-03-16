@@ -92,8 +92,8 @@ class AuditBundle extends AbstractBundle
             ->rootNode()
             ->addDefaultsIfNotSet()
             ->children()
-                ->scalarNode('audit_entity_manager')->defaultNull()->end()
-                ->scalarNode('default_entity_manager')->defaultNull()->end()
+                ->scalarNode('audit_entity_manager')->defaultValue('audit')->end()
+                ->scalarNode('default_entity_manager')->defaultValue('default')->end()
                 ->arrayNode('additional_audit_types')
                     ->scalarPrototype()->end()
                 ->end()
@@ -133,16 +133,10 @@ class AuditBundle extends AbstractBundle
 
     private function validate(array $config): void
     {
-        $auditEntityManager = $config['audit_entity_manager'] ?? null;
-        $defaultEntityManager = $config['default_entity_manager'] ?? null;
+        $auditEntityManager = $config['audit_entity_manager'] ?? 'audit';
+        $defaultEntityManager = $config['default_entity_manager'] ?? 'default';
 
-        if (false === ($config['custom_configuration'] ?? false)) {
-            if (null === $auditEntityManager || null === $defaultEntityManager) {
-                throw new InvalidConfigurationException('WhiteDigital\Audit: "audit_entity_manager" and "default_entity_manager" names must be set');
-            }
-        }
-
-        if (null !== $auditEntityManager && null !== $defaultEntityManager && $auditEntityManager === $defaultEntityManager) {
+        if ($auditEntityManager === $defaultEntityManager) {
             throw new InvalidConfigurationException('WhiteDigital\Audit: "audit_entity_manager" and "default_entity_manager" names must be different');
         }
     }
