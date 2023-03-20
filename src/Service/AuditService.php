@@ -22,6 +22,7 @@ use function array_values;
 use function class_implements;
 use function implode;
 use function in_array;
+use function is_scalar;
 use function mb_strimwidth;
 use function method_exists;
 use function rtrim;
@@ -94,8 +95,8 @@ class AuditService implements AuditServiceInterface
         $this->validateType($type);
 
         $location = '';
-        if (null !== ($data['url'] ?? null)) {
-            $location = ' ' . $data['url'];
+        if (null !== ($url = $data['url'] ?? null) && is_scalar($url)) {
+            $location = ' ' . $url;
         }
 
         if (!in_array(AuditEntityInterface::class, class_implements($class), true)) {
