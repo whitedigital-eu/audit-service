@@ -69,7 +69,7 @@ class AuditDoctrineEventSubscriber implements EventSubscriberInterface
         }
 
         $entityManager = $args->getObjectManager();
-        $originalEntityData = $entityManager->getUnitOfWork()->getEntityChangeSet($entity);
+        $originalEntityData = $entityManager->getUnitOfWork()->getOriginalEntityData($entity);
         if (!array_key_exists('id', $originalEntityData)) {
             $originalEntityData['id'] = $entity->getId();
         }
