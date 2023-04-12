@@ -92,7 +92,7 @@ class AuditDoctrineEventSubscriber implements EventSubscriberInterface
 
     private function normalizeEntityCollections(mixed $entity): array|int|string
     {
-        return array_map(function ($value) {
+        return array_map(static function ($value) {
             if ($value instanceof PersistentCollection) {
                 $collectionValue = [];
                 foreach ($value as $item) {
