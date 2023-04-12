@@ -44,20 +44,20 @@ class AuditDoctrineEventSubscriber implements EventSubscriberInterface
 
     public function postPersist(LifecycleEventArgs $args): void
     {
-        $this->logActivity($this->translator->trans('entity.create', domain: 'Audit'), $args);
+        $this->logActivity(Events::postPersist, $this->translator->trans('entity.create', domain: 'Audit'), $args);
     }
 
     public function preRemove(LifecycleEventArgs $args): void
     {
-        $this->logActivity($this->translator->trans('entity.remove', domain: 'Audit'), $args);
+        $this->logActivity(Events::preRemove, $this->translator->trans('entity.remove', domain: 'Audit'), $args);
     }
 
     public function postUpdate(LifecycleEventArgs $args): void
     {
-        $this->logActivity($this->translator->trans('entity.update', domain: 'Audit'), $args);
+        $this->logActivity(Events::postUpdate, $this->translator->trans('entity.update', domain: 'Audit'), $args);
     }
 
-    private function logActivity(string $action, LifecycleEventArgs $args): void
+    private function logActivity(string $event, string $action, LifecycleEventArgs $args): void
     {
         if (!$this->isEnabled) {
             return;
@@ -69,18 +69,30 @@ class AuditDoctrineEventSubscriber implements EventSubscriberInterface
         }
 
         $entityManager = $args->getObjectManager();
-        $originalEntityData = $entityManager->getUnitOfWork()->getOriginalEntityData($entity);
+        if (Events::postUpdate === $event) {
+            $originalEntityData = $entityManager->getUnitOfWork()->getEntityChangeSet($entity);
+            $entityData = [];
+            foreach ($originalEntityData as $field => $value) {
+                $entityData[$field] = [
+                    $this->normalizeEntityCollections($value),
+                ];
+            }
+            $originalEntityData = $entityData;
+        } else {
+            $originalEntityData = $entityManager->getUnitOfWork()->getOriginalEntityData($entity);
+            $originalEntityData = $this->normalizeEntityCollections($originalEntityData);
+        }
+
         if (!array_key_exists('id', $originalEntityData)) {
             $originalEntityData['id'] = $entity->getId();
         }
-        $originalEntityData = $this->normalizeEntityCollections($originalEntityData);
 
         $this->audit->audit(AuditType::DB, sprintf('%s on %s', $action, $entity::class), $originalEntityData);
     }
 
     private function normalizeEntityCollections(mixed $entity): array|int|string
     {
-        return array_map(static function ($value) {
+        return array_map(function ($value) {
             if ($value instanceof PersistentCollection) {
                 $collectionValue = [];
                 foreach ($value as $item) {
