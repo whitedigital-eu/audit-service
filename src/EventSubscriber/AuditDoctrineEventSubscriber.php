@@ -87,7 +87,8 @@ class AuditDoctrineEventSubscriber implements EventSubscriberInterface
             $originalEntityData['id'] = $entity->getId();
         }
 
-        $this->audit->audit(AuditType::DB, sprintf('%s on %s', $action, $entity::class), $originalEntityData);
+        $entityTranslation = $this->translator->trans('entity', domain: 'Audit');
+        $this->audit->audit(AuditType::DB, sprintf('%s %s %s', $action, $entityTranslation, $entity::class), $originalEntityData);
     }
 
     private function normalizeEntityCollections(mixed $entity): array|int|string
