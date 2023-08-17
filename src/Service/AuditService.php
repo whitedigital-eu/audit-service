@@ -58,8 +58,8 @@ class AuditService implements AuditServiceInterface
     public function auditException(Throwable $exception, ?string $url = null, string $class = Audit::class): void
     {
         if (
-            method_exists($exception, 'getStatusCode') &&
-            in_array($exception->getStatusCode(), $this->excludedCodes, true)
+            method_exists($exception, 'getStatusCode')
+            && in_array($exception->getStatusCode(), $this->excludedCodes, true)
         ) {
             return;
         }
