@@ -151,7 +151,7 @@ class AuditBundle extends AbstractBundle
         } elseif (!empty($extensionConfig['custom_api_resource_path'])) {
             $builder->prependExtensionConfig('api_platform', [
                 'mapping' => [
-                    'paths' => [$extensionConfig['custom_api_resource_paths']],
+                    'paths' => [$extensionConfig['custom_api_resource_path']],
                 ],
             ]);
         }
