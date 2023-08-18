@@ -1,5 +1,4 @@
-<?php declare(strict_types = 1);
-echo "<?php declare(strict_types = 1);\n"; ?>
+<?php echo "<?php declare(strict_types = 1);\n"; ?>
 
 namespace <?php echo $namespace; ?>;
 
