@@ -81,7 +81,7 @@ class AuditBundle extends AbstractBundle
             $this->addDoctrineConfig($container, $extensionConfig['default_entity_manager'] ?? 'default', 'Audit', self::MAPPINGS);
         }
 
-        $this->configureApiPlatformExtension($extensionConfig, $builder);
+        $this->configureApiPlatformExtension($container, $extensionConfig);
     }
 
     public function configure(DefinitionConfigurator $definition): void
@@ -140,20 +140,12 @@ class AuditBundle extends AbstractBundle
         }
     }
 
-    private function configureApiPlatformExtension(array $extensionConfig, ContainerBuilder $builder): void
+    private function configureApiPlatformExtension(ContainerConfigurator $container, array $extensionConfig): void
     {
         if (!array_key_exists('custom_api_resource_path', $extensionConfig)) {
-            $builder->prependExtensionConfig('api_platform', [
-                'mapping' => [
-                    'paths' => [self::API_RESOURCE_PATH],
-                ],
-            ]);
+            $this->addApiPlatformPaths($container, [self::API_RESOURCE_PATH]);
         } elseif (!empty($extensionConfig['custom_api_resource_path'])) {
-            $builder->prependExtensionConfig('api_platform', [
-                'mapping' => [
-                    'paths' => [$extensionConfig['custom_api_resource_path']],
-                ],
-            ]);
+            $this->addApiPlatformPaths($container, [$extensionConfig['custom_api_resource_path']]);
         }
     }
 }
