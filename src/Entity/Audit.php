@@ -3,7 +3,7 @@
 namespace WhiteDigital\Audit\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
-use WhiteDigital\Audit\ApiResource\AuditResource;
+use WhiteDigital\Audit\Api\Resource\AuditResource;
 use WhiteDigital\Audit\Contracts\AuditEntityInterface;
 use WhiteDigital\EntityResourceMapper\Attribute\Mapping;
 use WhiteDigital\EntityResourceMapper\Entity\BaseEntity;

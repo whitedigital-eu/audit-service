@@ -37,9 +37,7 @@ class AuditBundle extends AbstractBundle
         'mapping' => true,
     ];
 
-    private const PATHS = [
-        '%kernel.project_dir%/vendor/whitedigital-eu/audit-service/src/ApiResource',
-    ];
+    private const API_RESOURCE_PATH = '%kernel.project_dir%/vendor/whitedigital-eu/audit-service/src/Api/Resource';
 
     public function loadExtension(array $config, ContainerConfigurator $container, ContainerBuilder $builder): void
     {
@@ -72,18 +70,18 @@ class AuditBundle extends AbstractBundle
 
     public function prependExtension(ContainerConfigurator $container, ContainerBuilder $builder): void
     {
-        $audit = array_merge_recursive(...($builder->getExtensionConfig('audit') ?? []));
+        $extensionConfig = array_merge_recursive(...($builder->getExtensionConfig('audit') ?? []));
 
-        if (true === ($audit['set_doctrine_mappings'] ?? true)) {
-            $this->validate($audit);
+        if (true === ($extensionConfig['set_doctrine_mappings'] ?? true)) {
+            $this->validate($extensionConfig);
 
-            $mappings = $this->getOrmMappings($builder, $audit['default_entity_manager'] ?? 'default');
+            $mappings = $this->getOrmMappings($builder, $extensionConfig['default_entity_manager'] ?? 'default');
 
-            $this->addDoctrineConfig($container, $audit['audit_entity_manager'] ?? 'audit', 'Audit', self::MAPPINGS, $mappings);
-            $this->addDoctrineConfig($container, $audit['default_entity_manager'] ?? 'default', 'Audit', self::MAPPINGS);
+            $this->addDoctrineConfig($container, $extensionConfig['audit_entity_manager'] ?? 'audit', 'Audit', self::MAPPINGS, $mappings);
+            $this->addDoctrineConfig($container, $extensionConfig['default_entity_manager'] ?? 'default', 'Audit', self::MAPPINGS);
         }
 
-        $this->addApiPlatformPaths($container, self::PATHS);
+        $this->configureApiPlatformExtension($container, $extensionConfig);
     }
 
     public function configure(DefinitionConfigurator $definition): void
@@ -114,6 +112,7 @@ class AuditBundle extends AbstractBundle
                 ->end()
                 ->scalarNode('audit_type_interface_namespace')->defaultValue('App\\Audit')->end()
                 ->scalarNode('audit_type_interface_class_name')->defaultValue('AuditType')->end()
+                ->scalarNode('custom_api_resource_path')->defaultNull()->end()
             ->end();
     }
 
@@ -138,6 +137,15 @@ class AuditBundle extends AbstractBundle
 
         if ($auditEntityManager === $defaultEntityManager) {
             throw new InvalidConfigurationException('WhiteDigital\Audit: "audit_entity_manager" and "default_entity_manager" names must be different');
+        }
+    }
+
+    private function configureApiPlatformExtension(ContainerConfigurator $container, array $extensionConfig): void
+    {
+        if (!array_key_exists('custom_api_resource_path', $extensionConfig)) {
+            $this->addApiPlatformPaths($container, [self::API_RESOURCE_PATH]);
+        } elseif (!empty($extensionConfig['custom_api_resource_path'])) {
+            $this->addApiPlatformPaths($container, [$extensionConfig['custom_api_resource_path']]);
         }
     }
 }

@@ -2,11 +2,11 @@
 
 namespace <?php echo $namespace; ?>;
 
-interface <?php echo $class_name."\n"; ?>
+interface <?php echo $class_name . "\n"; ?>
 {
 <?php
-foreach($constants as $key => $value){
-    echo '    public const '.$key." = '".$value."';\n";
+foreach ($constants as $key => $value) {
+    echo '    public const ' . $key . " = '" . $value . "';\n";
 }
 ?>
 }

@@ -272,6 +272,45 @@ return static function (AuditConfig $config): void {
 };
 ```
 ---
+**Overriding default api resource (and therefore api endpoints)**
+
+By default, Audit resource is based on `AuditResource`  
+If you wish not to use this resource and not expose the api endpoints it provides, just set a custom api resource path 
+with a configuration value. If you set it as `null`, api platform will not register api resource located within this
+package.
+
+```yaml
+audit:
+    custom_api_resource_path: '%kernel.project_dir%/src/MyCustomPath'
+#    custom_api_resource_path: null
+```
+
+```php
+use Symfony\Config\AuditConfig;
+
+return static function (AuditConfig $config): void {
+    $config
+        ->customApiResourcePath('%kernel.project_dir%/src/MyCustomPath')
+        // or  ->customApiResourcePath(null);
+};
+```
+After overriding default api resource, do not forget to update ClassMapperConfigurator configuration that is used for 
+resource <-> entity mapping in `whitedigital-eu/entity-resource-mapper-bundle`
+```php
+use App\ApiResource\Admin\AuditResource;
+use WhiteDigital\Audit\Entity\Audit;
+use WhiteDigital\EntityResourceMapper\Mapper\ClassMapper;
+use WhiteDigital\EntityResourceMapper\Mapper\ClassMapperConfiguratorInterface;
+
+final class ClassMapperConfigurator implements ClassMapperConfiguratorInterface
+{
+    public function __invoke(ClassMapper $classMapper): void
+    {
+        $classMapper->registerMapping(AuditResource::class, Audit::class);
+    }
+}
+```
+---
 **Overriding default entity**  
 By default, Audit entity is based on `BaseEntity` that comes from `whitedigital-eu/entity-resource-mapper-bundle`.  
 If you wish not to use this base at all, you need to create new Entity and implement `AuditEntityInterface` into it:
