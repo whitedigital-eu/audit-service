@@ -2,7 +2,10 @@
 
 namespace WhiteDigital\Audit\EventSubscriber;
 
-use Doctrine\Bundle\DoctrineBundle\EventSubscriber\EventSubscriberInterface;
+use Doctrine\Bundle\DoctrineBundle\Attribute\AsDoctrineListener;
+use Doctrine\ORM\Event\PostPersistEventArgs;
+use Doctrine\ORM\Event\PostUpdateEventArgs;
+use Doctrine\ORM\Event\PreRemoveEventArgs;
 use Doctrine\ORM\Events;
 use Doctrine\ORM\PersistentCollection;
 use Doctrine\Persistence\Event\LifecycleEventArgs;
@@ -19,7 +22,10 @@ use function class_implements;
 use function in_array;
 use function sprintf;
 
-class AuditDoctrineEventSubscriber implements EventSubscriberInterface
+#[AsDoctrineListener(event: Events::postPersist, connection: 'default')]
+#[AsDoctrineListener(event: Events::preRemove, connection: 'default')]
+#[AsDoctrineListener(event: Events::postUpdate, connection: 'default')]
+class AuditDoctrineEventSubscriber
 {
     public function __construct(
         private readonly AuditServiceInterface $audit,
@@ -33,26 +39,18 @@ class AuditDoctrineEventSubscriber implements EventSubscriberInterface
         $this->isEnabled = $isEnabled;
     }
 
-    public function getSubscribedEvents(): array
-    {
-        return [
-            Events::postPersist,
-            Events::preRemove,
-            Events::postUpdate,
-        ];
-    }
 
-    public function postPersist(LifecycleEventArgs $args): void
+    public function postPersist(PostPersistEventArgs $args): void
     {
         $this->logActivity(Events::postPersist, $this->translator->trans('entity.create', domain: 'Audit'), $args);
     }
 
-    public function preRemove(LifecycleEventArgs $args): void
+    public function preRemove(PreRemoveEventArgs $args): void
     {
         $this->logActivity(Events::preRemove, $this->translator->trans('entity.remove', domain: 'Audit'), $args);
     }
 
-    public function postUpdate(LifecycleEventArgs $args): void
+    public function postUpdate(PostUpdateEventArgs $args): void
     {
         $this->logActivity(Events::postUpdate, $this->translator->trans('entity.update', domain: 'Audit'), $args);
     }

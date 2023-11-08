@@ -51,7 +51,7 @@ means of storage.
 
 ### System Requirements
 PHP 8.1+  
-Symfony 6.2+
+Symfony 6.3+
 
 ### Project Requirements
 **2 separate Doctrine entity managers (*if using provided AuditService*)**
