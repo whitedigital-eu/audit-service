@@ -11,25 +11,25 @@
     ],
     "license": "MIT",
     "require": {
-        "php": ">=8.1.0",
+        "php": ">=8.2",
         "ext-mbstring": "*",
-        "api-platform/core": "^3.1",
+        "api-platform/core": "^3.2",
         "doctrine/collections": "*",
         "doctrine/doctrine-bundle": "*",
         "doctrine/orm": "*",
         "doctrine/persistence": "*",
-        "symfony/config": "^6.3",
-        "symfony/console": "^6.3",
-        "symfony/dependency-injection": "^6.3",
-        "symfony/event-dispatcher": "^6.3",
-        "symfony/http-foundation": "^6.3",
-        "symfony/http-kernel": "^6.3",
+        "symfony/config": "^7.0",
+        "symfony/console": "^7.0",
+        "symfony/dependency-injection": "^7.0",
+        "symfony/event-dispatcher": "^7.0",
+        "symfony/http-foundation": "^7.0",
+        "symfony/http-kernel": "^7.0",
         "symfony/maker-bundle": "*",
-        "symfony/security-bundle": "^6.3",
-        "symfony/serializer": "^6.3",
-        "symfony/translation": "^6.3",
-        "symfony/validator": "^6.3",
-        "whitedigital-eu/entity-resource-mapper-bundle": "^0.24"
+        "symfony/security-bundle": "^7.0",
+        "symfony/serializer": "^7.0",
+        "symfony/translation": "^7.0",
+        "symfony/validator": "^7.0",
+        "whitedigital-eu/entity-resource-mapper-bundle": "^0.25"
     },
     "require-dev": {
         "friendsofphp/php-cs-fixer": "*",
@@ -37,7 +37,7 @@
         "whitedigital-eu/config-pack": "^2.1"
     },
     "conflict": {
-        "whitedigital-eu/entity-resource-mapper-bundle": "<0.23.5"
+        "whitedigital-eu/entity-resource-mapper-bundle": "<0.25"
     },
     "autoload": {
         "psr-4": {
