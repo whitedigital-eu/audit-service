@@ -81,6 +81,14 @@ class AuditBundle extends AbstractBundle
             $this->addDoctrineConfig($container, $extensionConfig['default_entity_manager'] ?? 'default', 'Audit', self::MAPPINGS);
         }
 
+        if ($builder->hasExtension('doctrine_migrations')) {
+            $container->extension('doctrine_migrations', [
+                'migrations_paths' => [
+                    'Whitedigital\Audit\Migrations' => '%kernel.project_dir%/vendor/whitedigital-eu/audit-service/migrations',
+                ],
+            ]);
+        }
+
         $this->configureApiPlatformExtension($container, $extensionConfig);
     }
 

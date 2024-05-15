@@ -9,6 +9,7 @@ use WhiteDigital\EntityResourceMapper\Attribute\Mapping;
 use WhiteDigital\EntityResourceMapper\Entity\BaseEntity;
 
 #[ORM\Entity]
+#[ORM\Table(schema: 'whitedigital')]
 #[ORM\MappedSuperclass]
 #[ORM\Index(fields: ['category'])]
 #[ORM\Index(fields: ['message'])]
